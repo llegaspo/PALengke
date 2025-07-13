@@ -12,6 +12,7 @@ export const getMessages = async (storageKey: string) => {
 
     if(stored)
   return JSON.parse(stored);
+    return [];
 } catch (e){
     console.error('Failed to get message', e);
     return [];
