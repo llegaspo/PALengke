@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { db } from "../firebase/firebaseconfig"; 
+import { db } from "../firebase/firebaseConfig"; 
 
 const Home = () => {
   return (
