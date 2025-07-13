@@ -5,14 +5,19 @@ export default function RootLayout(){
   <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#f4511e',
+          backgroundColor: '#4D0045', // Changed to purple
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
           fontWeight: 'bold',
         },
       }}>
-      <Stack.Screen name='index'/>
+      <Stack.Screen 
+        name='index' 
+        options={{
+          title: 'PALengke' // Changed from default 'index'
+        }}
+      />
     </Stack>
   )
 }

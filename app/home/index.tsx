@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 50, // Matches header top padding
+    paddingTop: 30, // Reduced from 50px
     paddingBottom: 50, // Matches top padding for symmetry
   },
   header: {
