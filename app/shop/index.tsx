@@ -4,9 +4,10 @@ import { getFontFamily } from '../../components/FontConfig';
 
 interface ShopProps {
   fontsLoaded?: boolean;
+  onNavigateToShare?: () => void;
 }
 
-const Shop: React.FC<ShopProps> = ({ fontsLoaded = true }) => {
+const Shop: React.FC<ShopProps> = ({ fontsLoaded = true, onNavigateToShare }) => {
   return (
     <View style={styles.container}>
       <Text style={[styles.title, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>

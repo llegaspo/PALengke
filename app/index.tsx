@@ -7,9 +7,11 @@ import Home from "./home";
 import Shop from "./shop";
 import Chat from "./chat";
 import Wallet from "./wallet";
+import SharePage from "./share";
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('home');
+  const [currentScreen, setCurrentScreen] = useState('main'); // 'main' or 'share'
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [fontLoadingComplete, setFontLoadingComplete] = useState(false);
 
@@ -32,10 +34,23 @@ const App = () => {
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
+    setCurrentScreen('main'); // Always go back to main screen when tab is pressed
+  };
+
+  const navigateToShare = () => {
+    setCurrentScreen('share');
+  };
+
+  const navigateBack = () => {
+    setCurrentScreen('main');
   };
 
   const renderContent = () => {
-    const props = { fontsLoaded };
+    if (currentScreen === 'share') {
+      return <SharePage fontsLoaded={fontsLoaded} onBack={navigateBack} />;
+    }
+
+    const props = { fontsLoaded, onNavigateToShare: navigateToShare };
     
     switch (activeTab) {
       case 'home':
@@ -65,7 +80,9 @@ const App = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.screen}>
         {renderContent()}
-        <BottomNavbar activeTab={activeTab} onTabPress={handleTabPress} fontsLoaded={fontsLoaded} />
+        {currentScreen === 'main' && (
+          <BottomNavbar activeTab={activeTab} onTabPress={handleTabPress} fontsLoaded={fontsLoaded} />
+        )}
       </View>
     </SafeAreaView>
   );

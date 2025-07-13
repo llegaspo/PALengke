@@ -23,7 +23,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
 }) => {
   const slideAnimation = useRef(new Animated.Value(-MENU_WIDTH)).current;
   const overlayAnimation = useRef(new Animated.Value(0)).current;
-  const menuItemAnimations = useRef(new Array(6).fill(null).map(() => new Animated.Value(0))).current;
+  const menuItemAnimations = useRef(new Array(3).fill(null).map(() => new Animated.Value(0))).current;
 
   useEffect(() => {
     if (isVisible) {
@@ -77,15 +77,6 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
   const menuItems = [
     {
-      id: 'profile',
-      title: 'Profile',
-      icon: 'person-outline',
-      onPress: () => {
-        console.log('Profile pressed');
-        onClose();
-      }
-    },
-    {
       id: 'analytics',
       title: 'Analytics',
       icon: 'analytics-outline',
@@ -100,24 +91,6 @@ const SideMenu: React.FC<SideMenuProps> = ({
       icon: 'notifications-outline',
       onPress: () => {
         console.log('Notifications pressed');
-        onClose();
-      }
-    },
-    {
-      id: 'help',
-      title: 'Help & Support',
-      icon: 'help-circle-outline',
-      onPress: () => {
-        console.log('Help pressed');
-        onClose();
-      }
-    },
-    {
-      id: 'settings',
-      title: 'Settings',
-      icon: 'settings-outline',
-      onPress: () => {
-        console.log('Settings pressed');
         onClose();
       }
     },
@@ -195,10 +168,10 @@ const SideMenu: React.FC<SideMenuProps> = ({
           {/* Dark Mode Toggle */}
           <Animated.View
             style={{
-              opacity: menuItemAnimations[5],
+              opacity: menuItemAnimations[2], // Changed from 5 to 2
               transform: [
                 {
-                  translateX: menuItemAnimations[5].interpolate({
+                  translateX: menuItemAnimations[2].interpolate({ // Changed from 5 to 2
                     inputRange: [0, 1],
                     outputRange: [50, 0],
                   }),

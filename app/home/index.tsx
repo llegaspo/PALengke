@@ -7,9 +7,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 interface HomeProps {
   fontsLoaded?: boolean;
+  onNavigateToShare?: () => void;
 }
 
-const Home: React.FC<HomeProps> = ({ fontsLoaded = true }) => {
+const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare }) => {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -73,7 +74,13 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollContainer} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
+      >
         {/* Header */}
         <Animated.View 
           style={[
@@ -276,10 +283,10 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true }) => {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Daily Quote Section */}
+        {/* Daily Quote and Share Section */}
         <Animated.View 
           style={[
-            styles.quoteSection,
+            styles.quoteShareContainer,
             {
               opacity: quoteAnimation,
               transform: [
@@ -308,21 +315,18 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true }) => {
             </Text>
           </View>
 
-          <View style={styles.shareCard}>
+          <TouchableOpacity style={styles.shareCard} onPress={onNavigateToShare}>
             <View style={styles.shareHeader}>
-              <Ionicons name="share-social" size={16} color="#4D0045" />
-              <Text style={[styles.shareTitle, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>
-                Share your store
-              </Text>
+              <Ionicons name="share-social" size={24} color="#FFFFFF" />
             </View>
-            <TouchableOpacity style={styles.shareButton}>
-              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+            <Text style={[styles.shareTitle, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>
+              Share your store
+            </Text>
+            <Text style={[styles.shareText, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>
+              Get more customers
+            </Text>
+          </TouchableOpacity>
         </Animated.View>
-
-        {/* Bottom Spacing */}
-        <View style={styles.bottomSpacing} />
       </ScrollView>
 
       {/* Side Menu */}
@@ -347,8 +351,12 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
   },
+  scrollContent: {
+    paddingTop: 50, // Matches header top padding
+    paddingBottom: 50, // Matches top padding for symmetry
+  },
   header: {
-    paddingTop: 50,
+    paddingTop: 0, // Removed since paddingTop is now in scrollContent
     paddingHorizontal: 20,
     paddingBottom: 10,
     flexDirection: 'row',
@@ -550,12 +558,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#FFFFFF',
   },
-  quoteSection: {
+  quoteShareContainer: {
+    flexDirection: 'row',
     paddingHorizontal: 20,
     marginBottom: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
     gap: 15,
   },
   quoteCard: {
@@ -596,7 +602,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   shareCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#4D0045',
     borderRadius: 16,
     padding: 20,
     height: 160,
@@ -605,43 +611,29 @@ const styles = StyleSheet.create({
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
     flex: 1,
   },
   shareHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   shareTitle: {
-    fontSize: 16,
-    color: '#4D0045',
-    marginLeft: 8,
+    fontSize: 18,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 8,
   },
   shareText: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 15,
-  },
-  shareButton: {
-    backgroundColor: '#4D0045',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'flex-end',
-    marginTop: 10,
-    shadowColor: '#4D0045',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    lineHeight: 18,
+    opacity: 0.9,
   },
   actionButton: {
     width: 50,
@@ -680,8 +672,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 5,
-  },
-  bottomSpacing: {
-    height: 100,
   },
 }); 

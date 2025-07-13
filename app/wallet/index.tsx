@@ -4,9 +4,10 @@ import { getFontFamily } from '../../components/FontConfig';
 
 interface WalletProps {
   fontsLoaded?: boolean;
+  onNavigateToShare?: () => void;
 }
 
-const Wallet: React.FC<WalletProps> = ({ fontsLoaded = true }) => {
+const Wallet: React.FC<WalletProps> = ({ fontsLoaded = true, onNavigateToShare }) => {
   return (
     <View style={styles.container}>
       <Text style={[styles.title, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>
