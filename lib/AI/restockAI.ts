@@ -1,8 +1,6 @@
 import { OpenAI, OpenAIPayload } from './openAI'
-import { useState } from 'react';
 import { Product } from '../inventory';
 import { addMessage, getMessages } from '../aiStorage';
-import { getInitialURL } from 'expo-router/build/link/linking';
 
 const STORAGE_KEY = 'restockAI_Message_History';
 

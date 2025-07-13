@@ -55,7 +55,6 @@ const App = () => {
     }
 
     const props = { fontsLoaded, onNavigateToShare: navigateToShare };
-    
     switch (activeTab) {
       case 'home':
         return <Home {...props} />;
