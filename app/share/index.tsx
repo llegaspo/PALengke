@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Animated, Easing, Share, Alert, TextInput, TouchableWithoutFeedback, Keyboard, Platform, Clipboard } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { getFontFamily } from '../../components/FontConfig';
 
@@ -30,6 +31,7 @@ Come visit us for quality products and friendly service! 🌟`);
   const contentAnimation = useRef(new Animated.Value(0)).current;
   const buttonAnimation = useRef(new Animated.Value(0)).current;
   const regenerateAnimation = useRef(new Animated.Value(1)).current;
+  const rotationAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Stagger animations for smooth entrance
@@ -48,6 +50,18 @@ Come visit us for quality products and friendly service! 🌟`);
         useNativeDriver: true,
       }).start();
     });
+
+    // Start continuous rotation animation for gradient border
+    const startRotation = () => {
+      rotationAnimation.setValue(0);
+      Animated.timing(rotationAnimation, {
+        toValue: 1,
+        duration: 4000, // 4 seconds for full rotation
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }).start(() => startRotation()); // Loop continuously
+    };
+    startRotation();
   }, []);
 
   const handleRegenerate = async () => {
@@ -220,23 +234,51 @@ Supporting our community, one customer at a time! 🤝`
             },
           ]}
         >
-          <View style={styles.contentCard}>
-            <TextInput
+          {/* Gradient Border Wrapper */}
+          <View style={styles.gradientWrapper}>
+            <Animated.View 
               style={[
-                styles.editableText,
-                { fontFamily: getFontFamily('regular', fontsLoaded) },
-                isEditing && styles.editableTextFocused
+                styles.gradientBorderContainer,
+                {
+                  transform: [
+                    {
+                      rotate: rotationAnimation.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['0deg', '360deg'],
+                      }),
+                    },
+                  ],
+                },
               ]}
-              value={content}
-              onChangeText={setContent}
-              multiline
-              textAlignVertical="top"
-              placeholder="Enter your store information..."
-              placeholderTextColor="#999"
-              onFocus={() => setIsEditing(true)}
-              onBlur={() => setIsEditing(false)}
-            />
+            >
+              <LinearGradient
+                colors={['#FF6B9D', '#4D0045', '#8B5FBF', '#D946EF', '#FF6B9D']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.gradientBorder}
+              />
+            </Animated.View>
+            
+            {/* Content Card */}
+            <View style={styles.contentCard}>
+              <TextInput
+                style={[
+                  styles.editableText,
+                  { fontFamily: getFontFamily('regular', fontsLoaded) },
+                  isEditing && styles.editableTextFocused
+                ]}
+                value={content}
+                onChangeText={setContent}
+                multiline
+                textAlignVertical="top"
+                placeholder="Enter your store information..."
+                placeholderTextColor="#999"
+                onFocus={() => setIsEditing(true)}
+                onBlur={() => setIsEditing(false)}
+              />
+            </View>
           </View>
+          
           <Text style={[styles.helperText, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>
             {isEditing ? 'Tap outside to finish editing' : 'Click to edit'}
           </Text>
@@ -297,52 +339,81 @@ export default SharePage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F8F9FA', // Slightly warmer background
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingTop: 40,
+    paddingHorizontal: 24, // Increased for better spacing
+    paddingBottom: 24, // Increased for better spacing
     backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 24,
-    color: '#4D0045',
-    flex: 1,
-    textAlign: 'center',
-    marginRight: 40, // Compensate for back button width
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  contentContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 30,
-    paddingBottom: 20,
-  },
-  contentCard: {
-    backgroundColor: '#E8D5E8',
-    borderRadius: 16,
-    padding: 25,
+    borderBottomWidth: 0, // Removed border for cleaner look
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 1,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  backButton: {
+    width: 44, // Larger touch target
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+    backgroundColor: '#F8F9FA',
+  },
+  headerTitle: {
+    fontSize: 24,
+    color: '#1A1A1A', // Darker for better contrast
+    flex: 1,
+    textAlign: 'center',
+    marginRight: 44, // Compensate for back button width
+    fontWeight: '600',
+  },
+  headerSpacer: {
+    width: 44,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 24, // Increased padding
+    paddingTop: 40, // More generous top spacing
+    paddingBottom: 20,
+    position: 'relative',
+  },
+  gradientWrapper: {
+    position: 'relative',
+  },
+  gradientBorderContainer: {
+    position: 'absolute',
+    top: -3, // Offset to create border effect
+    left: -3,
+    right: -3,
+    bottom: -3,
+    zIndex: 0,
+    borderRadius: 23, // Slightly larger than content card
+  },
+  gradientBorder: {
+    flex: 1,
+    borderRadius: 23,
+  },
+  contentCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20, // More rounded corners
+    padding: 32, // More generous padding
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.08, // Softer shadow
+    shadowRadius: 20,
+    elevation: 8,
+    zIndex: 1, // Ensure it's above the gradient
+    position: 'relative',
   },
   generatedText: {
     fontSize: 16,
@@ -351,63 +422,69 @@ const styles = StyleSheet.create({
   },
   editableText: {
     fontSize: 16,
-    color: '#333',
-    lineHeight: 24,
-    padding: 0, // Remove default padding
-    minHeight: 100, // Ensure minimum height for multiline
+    color: '#2D3748', // Better text color
+    lineHeight: 26, // Improved line height
+    padding: 0,
+    minHeight: 120, // Slightly larger
     textAlignVertical: 'top',
+    fontWeight: '400',
   },
   editableTextFocused: {
     borderColor: '#4D0045',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
+    borderWidth: 2,
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: '#FAFBFC', // Subtle background when focused
   },
   helperText: {
     fontSize: 14,
-    color: '#999',
+    color: '#718096', // More muted color
     textAlign: 'center',
-    marginTop: 10,
+    marginTop: 16, // Increased spacing
+    fontWeight: '400',
   },
   buttonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingBottom: 40,
-    gap: 15,
+    gap: 20, // Increased gap
   },
   downloadButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 56, // Larger
+    height: 56,
+    borderRadius: 28,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.04)',
   },
   regenerateButton: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 25,
-    paddingHorizontal: 25,
-    paddingVertical: 15,
+    borderRadius: 28, // More rounded
+    paddingHorizontal: 28, // Better padding
+    paddingVertical: 16,
     borderWidth: 2,
     borderColor: '#4D0045',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    minWidth: 120, // Ensure consistent width
   },
   regenerateButtonDisabled: {
     opacity: 0.6,
@@ -416,24 +493,27 @@ const styles = StyleSheet.create({
     color: '#4D0045',
     fontSize: 16,
     textAlign: 'center',
+    fontWeight: '600',
   },
   shareButton: {
     backgroundColor: '#4D0045',
-    borderRadius: 25,
-    paddingHorizontal: 30,
-    paddingVertical: 15,
+    borderRadius: 28, // More rounded
+    paddingHorizontal: 32, // Better padding
+    paddingVertical: 16,
     shadowColor: '#4D0045',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 6,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+    minWidth: 100, // Ensure consistent width
   },
   shareButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     textAlign: 'center',
+    fontWeight: '600',
   },
 }); 
