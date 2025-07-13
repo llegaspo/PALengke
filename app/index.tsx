@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView, Text } from 'react-native';
+import { StyleSheet, View, SafeAreaView, Text, LogBox } from 'react-native';
 import { db } from "../firebase/firebaseConfig";
 import BottomNavbar from "../components/BottomNavbar";
 import { loadFonts, getFontFamily } from "../components/FontConfig";
@@ -8,6 +8,9 @@ import Shop from "./shop";
 import Chat from "./chat";
 import Wallet from "./wallet";
 import SharePage from "./share";
+
+// Suppress the Expo Router Fragment warning
+LogBox.ignoreLogs(['Warning: Invalid prop `style` supplied to `React.Fragment`']);
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('home');
