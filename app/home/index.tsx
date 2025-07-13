@@ -8,12 +8,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 interface HomeProps {
   fontsLoaded?: boolean;
   onNavigateToShare?: () => void;
+  toggleMenu?: () => void;
 }
 
-const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare }) => {
-  const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
+const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, toggleMenu }) => {
   // Animation refs
   const headerAnimation = useRef(new Animated.Value(0)).current;
   const greetingAnimation = useRef(new Animated.Value(0)).current;
@@ -43,20 +41,6 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare }) =>
       }).start();
     });
   }, []);
-
-  const toggleMenu = () => {
-    setIsMenuVisible(!isMenuVisible);
-  };
-
-  const closeMenu = () => {
-    setIsMenuVisible(false);
-  };
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    // Here you can implement actual dark mode logic
-    console.log('Dark mode toggled:', !isDarkMode);
-  };
 
   const handleStoryPress = async () => {
     const url = 'https://business.inquirer.net/511302/study-highlights-transformative-power-of-ph-women-sari-preneurs';
@@ -328,15 +312,7 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare }) =>
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
-
-      {/* Side Menu */}
-      <SideMenu 
-        isVisible={isMenuVisible}
-        onClose={closeMenu}
-        fontsLoaded={fontsLoaded}
-        isDarkMode={isDarkMode}
-        onToggleDarkMode={toggleDarkMode}
-      />
+      {/* The SideMenu component is now removed from here and managed by the root App component */}
     </View>
   );
 };
