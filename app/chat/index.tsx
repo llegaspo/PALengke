@@ -316,11 +316,6 @@ const TypingIndicator = () => (
 );
 
   return (
-    <KeyboardAvoidingView
-         style={{ flex: 1 }}
-    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 20}
-    >
     <View style={styles.container}>
       {/* Animated Header */}
       <Animated.View
@@ -387,62 +382,66 @@ const TypingIndicator = () => (
         </View>
       </Animated.View>
 
-      {/* Chat Messages */}
-      <ScrollView style={styles.messagesContainer} showsVerticalScrollIndicator={false}>
-        {messages.map((msg) => (
-          <AnimatedMessage key={msg.id} msg={msg} />
-        ))}
-        {isTyping && <TypingIndicator />}
-      </ScrollView>
-
-      {/* Animated Input Area */}
-      <Animated.View
-        style={[
-          styles.inputContainer,
-          {
-            opacity: inputAnimation,
-            transform: [
-              {
-                translateY: inputAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [50, 0],
-                }),
-              },
-            ],
-          },
-        ]}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 90} // Adjusted for header height
       >
-        <TextInput
-          style={[
-            styles.textInput,
-            { fontFamily: getFontFamily('regular', fontsLoaded) },
-            isInputFocused && styles.textInputFocused
-          ]}
-          placeholder="Message"
-          placeholderTextColor="#999"
-          value={message}
-          onChangeText={setMessage}
-          onSubmitEditing={sendMessage}
-          onKeyPress={handleKeyPress}
-          onFocus={() => setIsInputFocused(true)}
-          onBlur={() => setIsInputFocused(false)}
-          multiline
-          returnKeyType="send"
-        />
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            { opacity: message.trim() ? 1 : 0.5 }
-          ]}
-          onPress={sendMessage}
-          disabled={!message.trim()}
-        >
-          <Ionicons name="send" size={20} color="#FFFFFF" />
-        </TouchableOpacity>
-      </Animated.View>
-    </View>
-    </KeyboardAvoidingView>
+        {/* Chat Messages */}
+        <ScrollView style={styles.messagesContainer} showsVerticalScrollIndicator={false}>
+          {messages.map((msg) => (
+            <AnimatedMessage key={msg.id} msg={msg} />
+          ))}
+          {isTyping && <TypingIndicator />}
+        </ScrollView>
 
+        {/* Animated Input Area */}
+        <Animated.View
+          style={[
+            styles.inputContainer,
+            {
+              opacity: inputAnimation,
+              transform: [
+                {
+                  translateY: inputAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [50, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <TextInput
+            style={[
+              styles.textInput,
+              { fontFamily: getFontFamily('regular', fontsLoaded) },
+              isInputFocused && styles.textInputFocused
+            ]}
+            placeholder="Message"
+            placeholderTextColor="#999"
+            value={message}
+            onChangeText={setMessage}
+            onSubmitEditing={sendMessage}
+            onKeyPress={handleKeyPress}
+            onFocus={() => setIsInputFocused(true)}
+            onBlur={() => setIsInputFocused(false)}
+            multiline
+            returnKeyType="send"
+          />
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              { opacity: message.trim() ? 1 : 0.5 }
+            ]}
+            onPress={sendMessage}
+            disabled={!message.trim()}
+          >
+            <Ionicons name="send" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </Animated.View>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
