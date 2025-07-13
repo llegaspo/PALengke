@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Dimensions, TextInput, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Dimensions, TextInput, Platform, Animated, Easing, LayoutAnimation, UIManager } from 'react-native';
 import { useRouter } from 'expo-router';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
+import { loadFonts, getFontFamily } from '../../components/FontConfig';
+
+if (Platform.OS === 'android') {
+  if (UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+}
 
 const { width, height } = Dimensions.get('window');
 
@@ -46,20 +53,70 @@ export default function ExistingInventoryScreen() {
   const [editingProduct, setEditingProduct] = useState<null | (Product & { pcsStr: string; costStr: string; priceStr: string })>(null);
   const [newProduct, setNewProduct] = useState<null | (Product & { pcsStr: string; costStr: string; priceStr: string })>(null);
   const [capital, setCapital] = useState(1000);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  // Animation refs
+  const headerAnimation = useRef(new Animated.Value(0)).current;
+  const contentAnimation = useRef(new Animated.Value(0)).current;
+  const bottomAnimation = useRef(new Animated.Value(0)).current;
 
   // Custom scrollbar state
   const [scrollY, setScrollY] = useState(0);
   const [contentHeight, setContentHeight] = useState(1);
   const [containerHeight, setContainerHeight] = useState(1);
 
-  const handleEdit = (product: Product) => setEditingProduct({
-    ...product,
-    pcsStr: product.pcs.toString(),
-    costStr: product.cost.toString(),
-    priceStr: product.price.toString(),
-  });
-  const handleDelete = (id: string) => setProducts(products.filter(p => p.id !== id));
+  useEffect(() => {
+    const loadAppFonts = async () => {
+      const success = await loadFonts();
+      setFontsLoaded(success);
+    };
+    loadAppFonts();
+
+    // Stagger entrance animations
+    Animated.stagger(200, [
+      Animated.timing(headerAnimation, {
+        toValue: 1,
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(contentAnimation, {
+        toValue: 1,
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(bottomAnimation, {
+        toValue: 1,
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const handleEdit = (product: Product) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+    setEditingProduct({
+      ...product,
+      pcsStr: product.pcs.toString(),
+      costStr: product.cost.toString(),
+      priceStr: product.price.toString(),
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+    setProducts(products.filter(p => p.id !== id));
+  };
+
   const handleSave = (product: Product & { pcsStr: string; costStr: string; priceStr: string }) => {
+    // Validate that all fields are filled
+    if (!product.name.trim() || !product.pcsStr.trim() || !product.costStr.trim() || !product.priceStr.trim()) {
+      return; // Don't save if any field is empty
+    }
+    
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
     setProducts(products.map(p =>
       (p.id === product.id ? {
         ...product,
@@ -70,9 +127,14 @@ export default function ExistingInventoryScreen() {
     ));
     setEditingProduct(null);
   };
-  const handleCancel = () => setEditingProduct(null);
+
+  const handleCancel = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+    setEditingProduct(null);
+  };
 
   const handleAdd = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
     setNewProduct({
       id: (Math.random() * 100000).toFixed(0),
       name: '',
@@ -85,8 +147,15 @@ export default function ExistingInventoryScreen() {
       priceStr: '',
     });
   };
+
   const handleSaveNew = () => {
     if (newProduct) {
+      // Validate that all fields are filled
+      if (!newProduct.name.trim() || !newProduct.pcsStr.trim() || !newProduct.costStr.trim() || !newProduct.priceStr.trim()) {
+        return; // Don't save if any field is empty
+      }
+      
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
       setProducts([
         ...products,
         {
@@ -99,10 +168,23 @@ export default function ExistingInventoryScreen() {
       setNewProduct(null);
     }
   };
-  const handleCancelNew = () => setNewProduct(null);
+
+  const handleCancelNew = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+    setNewProduct(null);
+  };
+
+  // Helper function to check if field is empty
+  const isFieldEmpty = (value: string) => !value || !value.trim();
+
+  // Helper function to get input style with red border if empty
+  const getInputStyle = (value: string, baseStyle: any) => [
+    baseStyle,
+    isFieldEmpty(value) ? { borderColor: '#EF4444', borderWidth: 2 } : {}
+  ];
 
   // Calculate scrollbar height and position
-  const scrollbarMargin = 20; // margin at top and bottom
+  const scrollbarMargin = 20;
   const scrollbarHeight = 100;
   const maxScroll = contentHeight - containerHeight;
   let rawTop = maxScroll > 0 ? (scrollY / maxScroll) * (containerHeight - scrollbarHeight - 2 * scrollbarMargin) : 0;
@@ -111,14 +193,23 @@ export default function ExistingInventoryScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header: always left-aligned, outside blurBox */}
-      <TouchableOpacity onPress={() => router.back()} style={styles.backArrow}>
-        <Image source={require('../../assets/png/arrowleft.png')} style={styles.backArrowImage} />
-      </TouchableOpacity>
-      <GradientText text="Let's set you up!" style={styles.title} />
-      <Text style={styles.subheading}>Start by listing your existing products.</Text>
-      {/* BlurBox: always same width and alignment */}
-      <View style={styles.blurBox}>
+      {/* Header */}
+      <Animated.View style={{ 
+        opacity: headerAnimation, 
+        transform: [{ translateY: headerAnimation.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }] 
+      }}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backArrow}>
+          <Image source={require('../../assets/png/arrowleft.png')} style={styles.backArrowImage} />
+        </TouchableOpacity>
+        <GradientText text="Let's set you up!" style={[styles.title, { paddingHorizontal: 20 }]} />
+        <Text style={[styles.subheading, { fontFamily: getFontFamily('regular', fontsLoaded), paddingHorizontal: 20 }]}>Start by listing your existing products.</Text>
+      </Animated.View>
+
+      {/* Content */}
+      <Animated.View style={[styles.blurBox, { 
+        opacity: contentAnimation, 
+        transform: [{ translateY: contentAnimation.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }] 
+      }]}>
         <ScrollView
           style={styles.scrollArea}
           showsVerticalScrollIndicator={false}
@@ -138,7 +229,7 @@ export default function ExistingInventoryScreen() {
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={styles.editLabel}>product name</Text>
                     <TextInput
-                      style={styles.editNameInput}
+                      style={getInputStyle(editingProduct.name, styles.editNameInput)}
                       value={editingProduct.name}
                       onChangeText={v => setEditingProduct({ ...editingProduct, name: v })}
                       placeholder="Product name"
@@ -150,7 +241,7 @@ export default function ExistingInventoryScreen() {
                   <View style={styles.editFieldBox}>
                     <Text style={styles.editFieldLabel}>pcs</Text>
                     <TextInput
-                      style={styles.editFieldInput}
+                      style={getInputStyle(editingProduct.pcsStr, styles.editFieldInput)}
                       value={editingProduct.pcsStr}
                       onChangeText={v => setEditingProduct({ ...editingProduct, pcsStr: v.replace(/[^0-9]/g, '') })}
                       keyboardType="numeric"
@@ -158,23 +249,27 @@ export default function ExistingInventoryScreen() {
                   </View>
                   <View style={styles.editFieldBox}>
                     <Text style={styles.editFieldLabel}>cost</Text>
-                    <View style={styles.editPesoBox}><Text style={styles.editPeso}>P</Text></View>
-                    <TextInput
-                      style={styles.editFieldInput}
-                      value={editingProduct.costStr}
-                      onChangeText={v => setEditingProduct({ ...editingProduct, costStr: v.replace(/[^0-9.]/g, '') })}
-                      keyboardType="numeric"
-                    />
+                    <View style={{ position: 'relative', width: '100%' }}>
+                      <View style={styles.editPesoBox}><Text style={styles.editPeso}>P</Text></View>
+                      <TextInput
+                        style={getInputStyle(editingProduct.costStr, [styles.editFieldInput, { paddingLeft: 24 }])}
+                        value={editingProduct.costStr}
+                        onChangeText={v => setEditingProduct({ ...editingProduct, costStr: v.replace(/[^0-9.]/g, '') })}
+                        keyboardType="numeric"
+                      />
+                    </View>
                   </View>
                   <View style={styles.editFieldBox}>
                     <Text style={styles.editFieldLabel}>price</Text>
-                    <View style={styles.editPesoBox}><Text style={styles.editPeso}>P</Text></View>
-                    <TextInput
-                      style={styles.editFieldInput}
-                      value={editingProduct.priceStr}
-                      onChangeText={v => setEditingProduct({ ...editingProduct, priceStr: v.replace(/[^0-9.]/g, '') })}
-                      keyboardType="numeric"
-                    />
+                    <View style={{ position: 'relative', width: '100%' }}>
+                      <View style={styles.editPesoBox}><Text style={styles.editPeso}>P</Text></View>
+                      <TextInput
+                        style={getInputStyle(editingProduct.priceStr, [styles.editFieldInput, { paddingLeft: 24 }])}
+                        value={editingProduct.priceStr}
+                        onChangeText={v => setEditingProduct({ ...editingProduct, priceStr: v.replace(/[^0-9.]/g, '') })}
+                        keyboardType="numeric"
+                      />
+                    </View>
                   </View>
                 </View>
                 <View style={styles.editActionsRow}>
@@ -197,7 +292,7 @@ export default function ExistingInventoryScreen() {
                 <View style={styles.productRow}>
                   <View style={styles.productImageCircle} />
                   <View style={styles.productInfoStack}>
-                    <Text style={styles.productName}>{product.name}</Text>
+                    <Text style={styles.productName} numberOfLines={1} ellipsizeMode="tail">{product.name}</Text>
                     <Text style={styles.productPcs}>{product.pcs} pcs</Text>
                   </View>
                   <View style={styles.productDetailsEditRow}>
@@ -223,7 +318,7 @@ export default function ExistingInventoryScreen() {
                 <View style={{ flex: 1, marginLeft: 12 }}>
                   <Text style={styles.editLabel}>product name</Text>
                   <TextInput
-                    style={styles.editNameInput}
+                    style={getInputStyle(newProduct.name, styles.editNameInput)}
                     value={newProduct.name}
                     onChangeText={v => setNewProduct({ ...newProduct, name: v })}
                     placeholder="Product name"
@@ -235,7 +330,7 @@ export default function ExistingInventoryScreen() {
                 <View style={styles.editFieldBox}>
                   <Text style={styles.editFieldLabel}>pcs</Text>
                   <TextInput
-                    style={styles.editFieldInput}
+                    style={getInputStyle(newProduct.pcsStr, styles.editFieldInput)}
                     value={newProduct.pcsStr}
                     onChangeText={v => setNewProduct({ ...newProduct, pcsStr: v.replace(/[^0-9]/g, '') })}
                     keyboardType="numeric"
@@ -243,23 +338,27 @@ export default function ExistingInventoryScreen() {
                 </View>
                 <View style={styles.editFieldBox}>
                   <Text style={styles.editFieldLabel}>cost</Text>
-                  <View style={styles.editPesoBox}><Text style={styles.editPeso}>P</Text></View>
-                  <TextInput
-                    style={styles.editFieldInput}
-                    value={newProduct.costStr}
-                    onChangeText={v => setNewProduct({ ...newProduct, costStr: v.replace(/[^0-9.]/g, '') })}
-                    keyboardType="numeric"
-                  />
+                  <View style={{ position: 'relative', width: '100%' }}>
+                    <View style={styles.editPesoBox}><Text style={styles.editPeso}>P</Text></View>
+                    <TextInput
+                      style={getInputStyle(newProduct.costStr, [styles.editFieldInput, { paddingLeft: 24 }])}
+                      value={newProduct.costStr}
+                      onChangeText={v => setNewProduct({ ...newProduct, costStr: v.replace(/[^0-9.]/g, '') })}
+                      keyboardType="numeric"
+                    />
+                  </View>
                 </View>
                 <View style={styles.editFieldBox}>
                   <Text style={styles.editFieldLabel}>price</Text>
-                  <View style={styles.editPesoBox}><Text style={styles.editPeso}>P</Text></View>
-                  <TextInput
-                    style={styles.editFieldInput}
-                    value={newProduct.priceStr}
-                    onChangeText={v => setNewProduct({ ...newProduct, priceStr: v.replace(/[^0-9.]/g, '') })}
-                    keyboardType="numeric"
-                  />
+                  <View style={{ position: 'relative', width: '100%' }}>
+                    <View style={styles.editPesoBox}><Text style={styles.editPeso}>P</Text></View>
+                    <TextInput
+                      style={getInputStyle(newProduct.priceStr, [styles.editFieldInput, { paddingLeft: 24 }])}
+                      value={newProduct.priceStr}
+                      onChangeText={v => setNewProduct({ ...newProduct, priceStr: v.replace(/[^0-9.]/g, '') })}
+                      keyboardType="numeric"
+                    />
+                  </View>
                 </View>
               </View>
               <View style={styles.editActionsRow}>
@@ -285,351 +384,341 @@ export default function ExistingInventoryScreen() {
             style={{ width: '100%', height: '100%', resizeMode: 'stretch' }}
           />
         </View>
-      </View>
+      </Animated.View>
+
       {/* Bottom row and confirm button remain unchanged */}
-      <View style={styles.bottomRow}>
-        <Text style={styles.capitalText}>Capital: P{capital.toLocaleString()}</Text>
-        <View style={styles.fabRow}>
-          <TouchableOpacity style={styles.fabBtn} onPress={handleAdd}>
-            <Image source={require('../../assets/png/addbtn.png')} style={styles.fabImg} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.fabBtn}>
-            <Image source={require('../../assets/png/camerabtn.png')} style={styles.fabImg} />
-          </TouchableOpacity>
+      <Animated.View style={{ 
+        opacity: bottomAnimation, 
+        transform: [{ translateY: bottomAnimation.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }] 
+      }}>
+        <View style={styles.bottomRow}>
+          <Text style={styles.capitalText}>Capital: P{capital.toLocaleString()}</Text>
+          <View style={styles.fabRow}>
+            <TouchableOpacity style={styles.fabBtn} onPress={handleAdd}>
+              <Text style={styles.fabIcon}>+</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.fabBtn}>
+              <Text style={styles.fabIcon}>📸</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-      <TouchableOpacity style={styles.confirmBtn}>
-        <Text style={styles.confirmBtnText}>Confirm</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={[styles.confirmBtn, { marginHorizontal: 20 }]}>
+          <Text style={styles.confirmBtnText}>Confirm</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: height,
-    maxWidth: 390,
-    marginHorizontal: 'auto',
-    padding: 16,
-    backgroundColor: '#fdfdfd',
     flex: 1,
-    flexDirection: 'column',
-    alignItems: 'flex-start',
+    backgroundColor: '#F8F9FA',
+    paddingHorizontal: '2%',
+    paddingTop: 20,
+    paddingBottom: 20,
   },
   backArrow: {
-    width: 34,
-    height: 34,
-    marginBottom: 8,
+    marginBottom: 16,
+    alignSelf: 'flex-start',
+    padding: 8,
   },
   backArrowImage: {
-    width: 34,
-    height: 34,
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
   },
   title: {
-    fontSize: 32,
+    fontSize: Math.min(width * 0.08, 32),
     fontWeight: 'bold',
+    backgroundColor: 'transparent',
     color: '#69006c',
-    marginBottom: 4,
+    marginBottom: 8,
+    letterSpacing: -1,
   },
   subheading: {
-    fontSize: 18,
-    color: '#222',
-    marginBottom: 16,
-    textAlign: 'left',
+    fontSize: Math.min(width * 0.04, 16),
+    color: '#4A5568',
+    marginBottom: 24,
+    lineHeight: 22,
   },
   blurBox: {
-    backgroundColor: '#dbcfdf',
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    padding: 16, // This gives equal space left and right
-    width: '100%',
-    minHeight: 320,
-    maxHeight: height * 0.55,
+    flex: 1,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 8,
     overflow: 'hidden',
+  },
+  scrollArea: {
+    flex: 1,
+    paddingTop: 20,
+  },
+  productCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  productRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  productImageCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#F1F5F9',
+    marginRight: 16,
+  },
+  productName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2D3748',
+    marginBottom: 4,
+    lineHeight: 22,
+  },
+  productPcs: {
+    fontSize: 14,
+    color: '#718096',
+    marginBottom: 2,
+    lineHeight: 18,
+  },
+  productDetailsStack: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    minWidth: 80,
+    marginLeft: 'auto',
+  },
+  productDetailsEditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    minWidth: 100,
+  },
+  productCost: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#69006c',
+    textAlign: 'right',
+  },
+  productPrice: {
+    fontSize: 14,
+    color: '#718096',
+    textAlign: 'right',
+    marginTop: 2,
+  },
+  productInfoGray: {
+    fontSize: 13,
+    color: '#718096',
+    textAlign: 'right',
+    marginBottom: 2,
+    lineHeight: 16,
+  },
+  editIconImg: {
+    alignSelf: 'center',
+    marginLeft: 8,
+    padding: 4,
+  },
+  editImg: {
+    width: 20,
+    height: 20,
+    resizeMode: 'contain',
+  },
+  editCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 4,
     marginBottom: 16,
+    padding: 20,
   },
-  scrollArea: {
-    height: '100%',
-    paddingRight: 8,
-  },
-  productCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 3,
-    marginBottom: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12, // balanced padding
-    width: '100%',
-    alignSelf: 'center',
-  },
-  productRow: {
+  editTopRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 60,
-    paddingVertical: 3,
-  },
-  productImageCircle: {
-    width: 61,
-    height: 61,
-    borderRadius: 45,
-    backgroundColor: '#d9d9d9',
-    marginRight: 8, // small gap to text
-  },
-  productName: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#111',
-    marginBottom: 0,
-  },
-  productPcs: {
-    fontSize: 11,
-    color: '#444',
-    marginBottom: 0,
-
-  },
-  productInfoCol: {
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    marginRight: 8,
-    minWidth: 120,
-  },
-  productInfoGray: {
-    color: '#888',
-    fontSize: 10,
-    marginBottom: 0,
-    textAlign: 'right',
-    fontWeight: '400',
-    marginLeft: 20,
-    paddingLeft:-16,
-  },
-  editIconImg: {
-    alignSelf: 'center',
-    marginLeft: 4, // small gap from cost
-    marginTop: 0,
-    padding: 0,
-  },
-  editImg: {
-    width: 22, // reduced from 28
-    height: 22, // reduced from 28
-    resizeMode: 'contain',
-  },
-  editCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 3,
+    alignItems: 'flex-start',
     marginBottom: 16,
-    padding: 16,
-  },
-  editRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
   },
   editImageCircle: {
-    width: 61,
-    height: 61,
-    borderRadius: 45,
-    backgroundColor: '#d9d9d9',
-    marginRight: 8,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#E2E8F0',
+    marginRight: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    display: 'flex',
   },
   editLabel: {
-    fontSize: 13,
-    color: '#111',
-    fontWeight: 'bold',
-    marginBottom: 2,
-    marginLeft: 2,
+    fontSize: 14,
+    color: '#4A5568',
+    fontWeight: '600',
+    marginBottom: 8,
   },
   editNameInput: {
-    backgroundColor: '#ededed',
-    borderRadius: 8,
-    padding: 8,
-    fontSize: 22,
-    fontWeight: 'bold',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 18,
+    fontWeight: '600',
     color: '#69006c',
-    marginBottom: 2,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   editFieldsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    marginTop: 4,
+    marginBottom: 16,
+    gap: 12,
   },
   editFieldBox: {
     flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 2,
+    alignItems: 'flex-start',
   },
   editFieldLabel: {
     fontSize: 12,
-    color: '#888',
-    marginBottom: 2,
+    color: '#718096',
+    marginBottom: 6,
+    fontWeight: '500',
+    alignSelf: 'flex-start',
   },
   editFieldInput: {
-    backgroundColor: '#ededed',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    padding: 6,
+    padding: 8,
     fontSize: 16,
     color: '#69006c',
     textAlign: 'center',
-    marginBottom: 2,
-    width: 48,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    minWidth: 60,
+    width: '100%',
   },
   editPesoBox: {
     position: 'absolute',
-    left: 4,
-    top: 22,
+    left: 8,
+    top: 8,
+    bottom: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 1,
   },
   editPeso: {
-    color: '#b9b9b9',
-    fontWeight: 'bold',
     fontSize: 16,
+    color: '#69006c',
+    fontWeight: '600',
   },
   editActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-  },
-  deleteIcon: {
-    backgroundColor: '#FF3B30',
-    borderRadius: 8,
-    padding: 8,
-    marginRight: 8,
+    justifyContent: 'space-between',
   },
   cancelBtn: {
-    backgroundColor: 'white',
-    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ba6ada',
-    paddingVertical: 6,
-    paddingHorizontal: 18,
-    marginRight: 8,
+    borderColor: '#69006c',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    marginRight: 12,
   },
   cancelBtnText: {
-    color: '#ba6ada',
-    fontWeight: 'bold',
-    fontSize: 15,
+    color: '#69006c',
+    fontWeight: '600',
+    fontSize: 14,
   },
   saveBtn: {
-    backgroundColor: '#ba6ada',
-    borderRadius: 24,
-    paddingVertical: 6,
-    paddingHorizontal: 18,
+    backgroundColor: '#69006c',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
   },
   saveBtnText: {
     color: 'white',
-    fontWeight: 'bold',
-    fontSize: 15,
+    fontWeight: '600',
+    fontSize: 14,
   },
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
-    marginTop: 8,
-    marginBottom: 8,
     justifyContent: 'space-between',
+    marginBottom: 16,
+    paddingHorizontal: 4,
   },
   capitalText: {
-    color: '#222',
+    color: '#2D3748',
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   fabRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
   },
   fabBtn: {
-    backgroundColor: '#f3e6fa',
-    borderRadius: 32,
+    backgroundColor: '#F7FAFC',
+    borderRadius: 24,
     width: 48,
     height: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   fabIcon: {
-    fontSize: 28,
-    color: '#ba6ada',
+    fontSize: 24,
+    color: '#69006c',
     fontWeight: 'bold',
   },
-  fabImg: {
-    width: 32,
-    height: 32,
-    resizeMode: 'contain',
-  },
   confirmBtn: {
-    backgroundColor: '#ba6ada',
-    borderRadius: 32,
+    backgroundColor: '#69006c',
+    borderRadius: 24,
     width: '100%',
-    paddingVertical: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
-    marginBottom: Platform.OS === 'ios' ? 24 : 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: '#69006c',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+    marginBottom: 20,
   },
   confirmBtnText: {
     color: 'white',
     fontWeight: 'bold',
-    fontSize: 18,
-    letterSpacing: 1,
+    fontSize: 16,
+    letterSpacing: 0.5,
   },
   productInfoStack: {
     flexDirection: 'column',
     alignItems: 'flex-start',
     justifyContent: 'center',
-    marginLeft: 0, // move closer to left
-    minWidth: 50,
     flex: 1,
-  },
-  productDetailsStack: {
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    minWidth: 80, // reduced from 120
-    marginRight: 0, // no extra gap
-  },
-  productDetailsEditRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    minWidth: 100, // reduced from 150
-    flex: 0,
-  },
-  editTopRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 8,
   },
   scrollWheel: {
     position: 'absolute',
-    right: 0, // flush to the rightmost edge
-    width: 20, // or your image width
+    right: 0,
+    width: 20,
     resizeMode: 'stretch',
     zIndex: 10,
   },

@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ImageBackground, StyleSheet, Dimensions } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, ImageBackground, StyleSheet, Animated, Easing, Dimensions, LayoutAnimation, UIManager, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BlurView } from 'expo-blur';
-import MaskedView from '@react-native-masked-view/masked-view';
-import { LinearGradient } from 'expo-linear-gradient';
+import { loadFonts, getFontFamily } from '../../components/FontConfig';
 
-const { height } = Dimensions.get('window');
+if (Platform.OS === 'android') {
+  if (UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+}
 
-const translations = {
+const t = {
   English: {
     title: 'Set Preferred Language:',
     confirm: 'Confirm',
@@ -23,23 +26,56 @@ const translations = {
   },
 };
 
-function GradientText({ text, style }: { text: string, style?: any }) {
-  return (
-    <MaskedView maskElement={<Text style={[style, { backgroundColor: 'transparent' }]}>{text}</Text>}>
-      <LinearGradient
-        colors={["#69006C", "#F396FF"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-      >
-        <Text style={[style, { opacity: 0 }]}>{text}</Text>
-      </LinearGradient>
-    </MaskedView>
-  );
-}
-
 export default function LanguageScreen() {
   const router = useRouter();
   const [selectedLang, setSelectedLang] = useState<'English' | 'Tagalog' | 'Bisaya' | null>(null);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  // Animation refs
+  const titleAnimation = useRef(new Animated.Value(0)).current;
+  const buttonsAnimation = useRef(new Animated.Value(0)).current;
+  const confirmAnimation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loadAppFonts = async () => {
+      const success = await loadFonts();
+      setFontsLoaded(success);
+    };
+    loadAppFonts();
+
+    Animated.stagger(200, [
+      Animated.timing(titleAnimation, {
+        toValue: 1,
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonsAnimation, {
+        toValue: 1,
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  useEffect(() => {
+    if (selectedLang) {
+      Animated.timing(confirmAnimation, {
+        toValue: 1,
+        duration: 400,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    } else {
+      confirmAnimation.setValue(0);
+    }
+  }, [selectedLang]);
+
+  const handleSelectLang = (lang: 'English' | 'Tagalog' | 'Bisaya') => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+    setSelectedLang(lang);
+  };
 
   const handleConfirm = async () => {
     if (selectedLang) {
@@ -48,7 +84,7 @@ export default function LanguageScreen() {
     }
   };
 
-  const currentText = translations[selectedLang || 'English'];
+  const currentText = t[selectedLang || 'English'];
 
   return (
     <ImageBackground
@@ -56,29 +92,43 @@ export default function LanguageScreen() {
       style={styles.container}
       resizeMode="cover"
     >
-      <BlurView intensity={10} style={styles.blurBox}>
-        <Text style={styles.title}>{currentText.title}</Text>
-        <View style={styles.squareWrapper}>
-          {(['English', 'Tagalog', 'Bisaya'] as const).map((lang) => (
-            <TouchableOpacity
-              key={lang}
-              style={[styles.square, selectedLang === lang && styles.selected]}
-              onPress={() => setSelectedLang(lang)}
-              activeOpacity={0.7}
-            >
-              {selectedLang === lang ? (
-                <GradientText text={lang} style={[styles.text, styles.selectedText]} />
-              ) : (
-                <Text style={styles.text}>{lang}</Text>
-              )}
-            </TouchableOpacity>
-          ))}
-          {selectedLang && (
-            <TouchableOpacity style={styles.confirmSquare} onPress={handleConfirm} activeOpacity={0.7}>
-              <Text style={styles.confirmText}>{currentText.confirm}</Text>
-            </TouchableOpacity>
-          )}
+      <BlurView intensity={10} tint="light" style={styles.blurBox}>
+        <View>
+          <Animated.View style={{ opacity: titleAnimation, transform: [{ translateY: titleAnimation.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }] }}>
+            <View style={styles.titleContainer}>
+              <Text style={[styles.title, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>{currentText.title}</Text>
+            </View>
+          </Animated.View>
+          <Animated.View style={{ opacity: buttonsAnimation, transform: [{ translateY: buttonsAnimation.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }}>
+            <View style={styles.squareWrapper}>
+              {(['English', 'Tagalog', 'Bisaya'] as const).map((lang) => (
+                <TouchableOpacity
+                  key={lang}
+                  style={[styles.button, styles.square, selectedLang === lang && styles.selected]}
+                  onPress={() => handleSelectLang(lang)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.text,
+                      { fontFamily: getFontFamily(selectedLang === lang ? 'bold' : 'regular', fontsLoaded) },
+                      selectedLang === lang && styles.selectedText,
+                    ]}
+                  >
+                    {lang}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Animated.View>
         </View>
+        {selectedLang && (
+          <Animated.View style={[styles.confirmButtonWrapper, { opacity: confirmAnimation, transform: [{ scale: confirmAnimation.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }] }]}>
+            <TouchableOpacity style={[styles.button, styles.confirmSquare]} onPress={handleConfirm} activeOpacity={0.7}>
+              <Text style={[styles.confirmText, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>{currentText.confirm}</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
       </BlurView>
     </ImageBackground>
   );
@@ -88,8 +138,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
-    maxWidth: 390,
-    height: height,
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -97,36 +146,47 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.5)',
+    width: '90%',
     height: '90%',
-    width: '85%',
-    boxShadow: '3px 4px 4px 0px rgba(173,0 ,29, 0.25)',
-    maxWidth: 390,
+    maxWidth: 500,
+    maxHeight: 800,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-around',
     overflow: 'hidden',
+    padding: 20,
+    shadowColor: '#AD001D',
+    shadowOffset: {
+      width: 3,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  titleContainer: {
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    marginBottom: 20,
   },
   title: {
     fontSize: 18,
-    fontFamily: 'sans-serif',
-    fontWeight: '100',
     color: 'white',
     textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 4,
-    paddingBottom: 48,
     textAlign: 'center',
   },
   squareWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    marginBottom: -100,
   },
-  square: {
-    width: '72%',
-    height: 50,
+  button: {
+    width: 280,
+    height: 60,
     borderRadius: 278,
-    backgroundColor: 'white',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -134,12 +194,16 @@ const styles = StyleSheet.create({
     elevation: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 6,
+    marginVertical: 10,
+    paddingHorizontal: 20,
+  },
+  square: {
+    backgroundColor: 'white',
   },
   text: {
     fontSize: 16,
-    fontWeight: '500',
     color: 'black',
+    textAlign: 'center',
   },
   selected: {
     shadowColor: '#fff',
@@ -147,27 +211,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 4,
+    backgroundColor: '#F3E5F5',
   },
   selectedText: {
     color: '#69006c',
   },
-  confirmSquare: {
-    width: '72%',
-    height: 50,
-    borderRadius: 278,
-    backgroundColor: '#ba6ada',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
+  confirmButtonWrapper: {
+    width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 200,
+  },
+  confirmSquare: {
+    backgroundColor: '#ba6ada',
   },
   confirmText: {
     color: 'white',
-    fontWeight: 'bold',
     fontSize: 16,
   },
 });
