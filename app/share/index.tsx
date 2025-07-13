@@ -31,7 +31,6 @@ Come visit us for quality products and friendly service! 🌟`);
   const contentAnimation = useRef(new Animated.Value(0)).current;
   const buttonAnimation = useRef(new Animated.Value(0)).current;
   const regenerateAnimation = useRef(new Animated.Value(1)).current;
-  const rotationAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Stagger animations for smooth entrance
@@ -50,18 +49,6 @@ Come visit us for quality products and friendly service! 🌟`);
         useNativeDriver: true,
       }).start();
     });
-
-    // Start continuous rotation animation for gradient border
-    const startRotation = () => {
-      rotationAnimation.setValue(0);
-      Animated.timing(rotationAnimation, {
-        toValue: 1,
-        duration: 4000, // 4 seconds for full rotation
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }).start(() => startRotation()); // Loop continuously
-    };
-    startRotation();
   }, []);
 
   const handleRegenerate = async () => {
@@ -236,28 +223,14 @@ Supporting our community, one customer at a time! 🤝`
         >
           {/* Gradient Border Wrapper */}
           <View style={styles.gradientWrapper}>
-            <Animated.View 
-              style={[
-                styles.gradientBorderContainer,
-                {
-                  transform: [
-                    {
-                      rotate: rotationAnimation.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: ['0deg', '360deg'],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            >
+            <View style={styles.gradientBorderContainer}>
               <LinearGradient
                 colors={['#FF6B9D', '#4D0045', '#8B5FBF', '#D946EF', '#FF6B9D']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.gradientBorder}
               />
-            </Animated.View>
+            </View>
             
             {/* Content Card */}
             <View style={styles.contentCard}>
