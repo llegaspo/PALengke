@@ -15,7 +15,7 @@ export default function RootLayout(){
       <Stack.Screen 
         name='index' 
         options={{
-          title: 'PALengke' // Changed from default 'index'
+          title: 'palengke' // Changed from default 'index'
         }}
       />
     </Stack>
