@@ -16,9 +16,10 @@ interface Message {
 
 interface ChatProps {
   fontsLoaded?: boolean;
+  onNavigateToShare?: () => void;
 }
 
-const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
+const Chat: React.FC<ChatProps> = ({ fontsLoaded = true, onNavigateToShare }) => {
   const [message, setMessage] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isTyping, setIsTyping] = useState(false);

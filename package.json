@@ -28,6 +28,7 @@
     "react-native-markdown-display": "^7.0.2",
     "react-native-svg": "15.11.2",
     "react-native-web": "^0.20.0",
+    "expo-linear-gradient": "~14.1.5"
     "uc.micro": "^2.1.0"
   },
   "devDependencies": {
