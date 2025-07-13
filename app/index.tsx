@@ -36,7 +36,7 @@ const App = () => {
 
   const renderContent = () => {
     const props = { fontsLoaded };
-    
+
     switch (activeTab) {
       case 'home':
         return <Home {...props} />;

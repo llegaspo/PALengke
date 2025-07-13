@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Animated, Easing } from 'react-native';
+import Markdown from 'react-native-markdown-display';
 import { Ionicons } from '@expo/vector-icons';
 import { getFontFamily } from '../../components/FontConfig';
 import AteAiIcon from '../../assets/icons/ate-ai.svg';
 import AteAiProfileIcon from '../../assets/icons/ate-ai-icon.svg';
+import { AIAssistant } from '../../lib/AI/aiAssistant';
 
 interface Message {
   id: number;
@@ -20,13 +22,13 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
   const [message, setMessage] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  
+
   // Animation values
   const headerAnimation = useRef(new Animated.Value(0)).current;
   const messageAnimations = useRef<{ [key: number]: Animated.Value }>({}).current;
   const inputAnimation = useRef(new Animated.Value(0)).current;
   const typingAnimation = useRef(new Animated.Value(0)).current;
-  
+
   // Initial chat messages - easy to modify
   const initialMessages: Message[] = [
     {
@@ -62,7 +64,7 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
       if (!messageAnimations[msg.id]) {
         messageAnimations[msg.id] = new Animated.Value(0);
       }
-      
+
       Animated.timing(messageAnimations[msg.id], {
         toValue: 1,
         duration: 600,
@@ -105,7 +107,7 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
     }
   }, [isTyping]);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (message.trim()) {
       const newMessage: Message = {
         id: messages.length + 1,
@@ -113,13 +115,15 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
         isBot: false,
         timestamp: new Date()
       };
-      
+
+      const tempMessage = message;
+
       // Initialize animation for new message
       messageAnimations[newMessage.id] = new Animated.Value(0);
-      
+
       setMessages([...messages, newMessage]);
       setMessage('');
-      
+
       // Animate new message
       Animated.timing(messageAnimations[newMessage.id], {
         toValue: 1,
@@ -130,19 +134,20 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
 
       // Simulate bot typing
       setIsTyping(true);
+      const res = await AIAssistant(message);
       setTimeout(() => {
         setIsTyping(false);
         // Add bot response (optional)
         const botResponse: Message = {
           id: messages.length + 2,
-          text: "Thanks for your message! How can I help you today?",
+          text: res,
           isBot: true,
           timestamp: new Date()
         };
-        
+
         messageAnimations[botResponse.id] = new Animated.Value(0);
         setMessages(prev => [...prev, botResponse]);
-        
+
         Animated.timing(messageAnimations[botResponse.id], {
           toValue: 1,
           duration: 400,
@@ -161,9 +166,9 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
 
   const AnimatedMessage = ({ msg }: { msg: Message }) => {
     const animValue = messageAnimations[msg.id] || new Animated.Value(1);
-    
+
     return (
-      <Animated.View 
+      <Animated.View
         style={[
           styles.messageWrapper,
           msg.isBot ? styles.botMessageWrapper : styles.userMessageWrapper,
@@ -187,7 +192,7 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
         ]}
       >
         {msg.isBot && (
-          <Animated.View 
+          <Animated.View
             style={[
               styles.profileIcon,
               {
@@ -203,13 +208,13 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
               },
             ]}
           >
-            <AteAiProfileIcon 
-              width={40} 
+            <AteAiProfileIcon
+              width={40}
               height={40}
             />
           </Animated.View>
         )}
-        <Animated.View 
+        <Animated.View
           style={[
             styles.messageBubble,
             msg.isBot ? styles.botBubble : styles.userBubble,
@@ -225,20 +230,45 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
             },
           ]}
         >
-          <Text style={[
-            styles.messageText,
-            { fontFamily: getFontFamily('regular', fontsLoaded) },
-            msg.isBot ? styles.botText : styles.userText
-          ]}>
+          <Markdown
+            style={{
+              body: {
+                fontFamily: getFontFamily('regular', fontsLoaded),
+                fontSize: 18,
+                color: msg.isBot ? '#333' : '#FFFFFF',
+                lineHeight: 24,
+              },
+              strong: {
+                fontFamily: getFontFamily('bold', fontsLoaded),
+                fontWeight: 'bold',
+                color: msg.isBot ? '#333' : '#FFFFFF',
+              },
+              em: {
+                fontStyle: 'italic',
+                color: msg.isBot ? '#333' : '#FFFFFF',
+              },
+              bullet_list: {
+                paddingLeft: 10,
+                marginVertical: 4,
+              },
+              list_item: {
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+              },
+              paragraph: {
+                marginBottom: 8,
+              },
+            }}
+          >
             {msg.text}
-          </Text>
+          </Markdown>
         </Animated.View>
       </Animated.View>
     );
   };
 
   const TypingIndicator = () => (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.messageWrapper,
         styles.botMessageWrapper,
@@ -248,14 +278,14 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
       ]}
     >
       <View style={styles.profileIcon}>
-        <AteAiProfileIcon 
-          width={40} 
+        <AteAiProfileIcon
+          width={40}
           height={40}
         />
       </View>
       <View style={[styles.messageBubble, styles.botBubble]}>
         <View style={styles.typingContainer}>
-          <Animated.View 
+          <Animated.View
             style={[
               styles.typingDot,
               {
@@ -266,7 +296,7 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
               },
             ]}
           />
-          <Animated.View 
+          <Animated.View
             style={[
               styles.typingDot,
               {
@@ -277,7 +307,7 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
               },
             ]}
           />
-          <Animated.View 
+          <Animated.View
             style={[
               styles.typingDot,
               {
@@ -296,7 +326,7 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
   return (
     <View style={styles.container}>
       {/* Animated Header */}
-      <Animated.View 
+      <Animated.View
         style={[
           styles.header,
           {
@@ -313,7 +343,7 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
         ]}
       >
         <View style={styles.headerContent}>
-          <Animated.View 
+          <Animated.View
             style={[
               styles.iconContainer,
               {
@@ -329,12 +359,12 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
               },
             ]}
           >
-            <AteAiIcon 
-              width={80} 
+            <AteAiIcon
+              width={80}
               height={80}
             />
           </Animated.View>
-          <Animated.View 
+          <Animated.View
             style={[
               styles.headerText,
               {
@@ -369,7 +399,7 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
       </ScrollView>
 
       {/* Animated Input Area */}
-      <Animated.View 
+      <Animated.View
         style={[
           styles.inputContainer,
           {
@@ -402,11 +432,11 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true }) => {
           multiline
           returnKeyType="send"
         />
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[
             styles.sendButton,
             { opacity: message.trim() ? 1 : 0.5 }
-          ]} 
+          ]}
           onPress={sendMessage}
           disabled={!message.trim()}
         >
@@ -581,4 +611,4 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-}); 
+});
