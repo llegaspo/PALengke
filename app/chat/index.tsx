@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Animated, Easing } from 'react-native';
+import {
+  KeyboardAvoidingView, Platform, Keyboard,
+  StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Animated, Easing } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { Ionicons } from '@expo/vector-icons';
 import { getFontFamily } from '../../components/FontConfig';
@@ -268,63 +270,57 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true, onNavigateToShare }) =>
     );
   };
 
-  const TypingIndicator = () => (
-    <Animated.View
-      style={[
-        styles.messageWrapper,
-        styles.botMessageWrapper,
-        {
-          opacity: typingAnimation,
-        },
-      ]}
-    >
-      <View style={styles.profileIcon}>
-        <AteAiProfileIcon
-          width={40}
-          height={40}
+const TypingIndicator = () => (
+  <View style={[styles.messageWrapper, styles.botMessageWrapper]}>
+    <View style={styles.profileIcon}>
+      <AteAiProfileIcon width={40} height={40} />
+    </View>
+    <View style={[styles.messageBubble, styles.botBubble]}>
+      <View style={styles.typingContainer}>
+        <Animated.View
+          style={[
+            styles.typingDot,
+            {
+              opacity: typingAnimation.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.3, 1],
+              }),
+            },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.typingDot,
+            {
+              opacity: typingAnimation.interpolate({
+                inputRange: [0, 0.5, 1],
+                outputRange: [0.3, 1, 0.3],
+              }),
+            },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.typingDot,
+            {
+              opacity: typingAnimation.interpolate({
+                inputRange: [0, 1],
+                outputRange: [1, 0.3],
+              }),
+            },
+          ]}
         />
       </View>
-      <View style={[styles.messageBubble, styles.botBubble]}>
-        <View style={styles.typingContainer}>
-          <Animated.View
-            style={[
-              styles.typingDot,
-              {
-                opacity: typingAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.3, 1],
-                }),
-              },
-            ]}
-          />
-          <Animated.View
-            style={[
-              styles.typingDot,
-              {
-                opacity: typingAnimation.interpolate({
-                  inputRange: [0, 0.5, 1],
-                  outputRange: [0.3, 1, 0.3],
-                }),
-              },
-            ]}
-          />
-          <Animated.View
-            style={[
-              styles.typingDot,
-              {
-                opacity: typingAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [1, 0.3],
-                }),
-              },
-            ]}
-          />
-        </View>
-      </View>
-    </Animated.View>
-  );
+    </View>
+  </View>
+);
 
   return (
+    <KeyboardAvoidingView
+         style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 20}
+    >
     <View style={styles.container}>
       {/* Animated Header */}
       <Animated.View
@@ -445,6 +441,8 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true, onNavigateToShare }) =>
         </TouchableOpacity>
       </Animated.View>
     </View>
+    </KeyboardAvoidingView>
+
   );
 };
 
