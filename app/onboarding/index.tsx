@@ -109,9 +109,9 @@ export default function OnboardingScreen() {
 
   const handleConfirm = () => {
     if (selected === 'option1') {
-      router.push('/existing');
+      router.push('/existing-storeoptions');
     } else if (selected === 'option2') {
-      router.push('/start');
+      router.push('/existing-inventory');
     }
   };
 

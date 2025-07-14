@@ -8,10 +8,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 interface HomeProps {
   fontsLoaded?: boolean;
   onNavigateToShare?: () => void;
-  toggleMenu?: () => void;
 }
 
-const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, toggleMenu }) => {
+const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare }) => {
+  const [isSideMenuVisible, setSideMenuVisible] = useState(false);
+  
   // Animation refs
   const headerAnimation = useRef(new Animated.Value(0)).current;
   const greetingAnimation = useRef(new Animated.Value(0)).current;
@@ -41,6 +42,10 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, togg
       }).start();
     });
   }, []);
+
+  const toggleMenu = () => {
+    setSideMenuVisible(!isSideMenuVisible);
+  };
 
   const handleStoryPress = async () => {
     const url = 'https://business.inquirer.net/511302/study-highlights-transformative-power-of-ph-women-sari-preneurs';
@@ -312,7 +317,13 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, togg
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
-      {/* The SideMenu component is now removed from here and managed by the root App component */}
+
+      {isSideMenuVisible && (
+        <SideMenu
+          isVisible={isSideMenuVisible}
+          onClose={() => setSideMenuVisible(false)}
+        />
+      )}
     </View>
   );
 };

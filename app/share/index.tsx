@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Animated, Easing, Share, Alert, TextInput, TouchableWithoutFeedback, Keyboard, Platform, Clipboard } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { getFontFamily } from '../../components/FontConfig';
+import { ShareStoreAI } from '../../lib/AI/shareStoreAI';
+import { LoadSampleProducts } from '../../lib/inventory';
 
+LoadSampleProducts();
 interface SharePageProps {
   fontsLoaded?: boolean;
   onBack?: () => void;
@@ -11,21 +14,30 @@ interface SharePageProps {
 
 const SharePage: React.FC<SharePageProps> = ({ fontsLoaded = true, onBack }) => {
   const [isRegenerating, setIsRegenerating] = useState(false);
-  const [content, setContent] = useState(`🛒 Visit Nanay Rita's Store! 
-
-Fresh vegetables, fruits, and daily essentials at unbeatable prices!
-
-🥬 Fresh Vegetables: ₱20-50
-🍎 Seasonal Fruits: ₱30-80  
-🥛 Daily Essentials: ₱15-100
-
-📍 Located at: Barangay San Jose, Batangas City
-⏰ Open: 6:00 AM - 8:00 PM daily
-
-Come visit us for quality products and friendly service! 🌟`);
+//   const [content, setContent] = useState(`🛒 Visit Nanay Rita's Store!
+//
+// Fresh vegetables, fruits, and daily essentials at unbeatable prices!
+//
+// 🥬 Fresh Vegetables: ₱20-50
+// 🍎 Seasonal Fruits: ₱30-80
+// 🥛 Daily Essentials: ₱15-100
+//
+// 📍 Located at: Barangay San Jose, Batangas City
+// ⏰ Open: 6:00 AM - 8:00 PM daily
+//
+// Come visit us for quality products and friendly service! 🌟`);
+  const [content, setContent] = useState('')
   const [isEditing, setIsEditing] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
 
+  useEffect(() => {
+    const fetch = async() => {
+      const result = await ShareStoreAI({storeName: 'Nanay Rita', location: 'Lahug'})
+      setContent(result);
+    }
+
+    fetch();
+  }, [])
   // Animation refs
   const headerAnimation = useRef(new Animated.Value(0)).current;
   const contentAnimation = useRef(new Animated.Value(0)).current;
@@ -53,7 +65,10 @@ Come visit us for quality products and friendly service! 🌟`);
 
   const handleRegenerate = async () => {
     setIsRegenerating(true);
-    
+
+    try{
+    const newShare = await ShareStoreAI({storeName: 'Nanay Rita', location: 'Lahug'})
+
     // Animate regenerate button
     Animated.sequence([
       Animated.timing(regenerateAnimation, {
@@ -68,63 +83,20 @@ Come visit us for quality products and friendly service! 🌟`);
       }),
     ]).start();
 
-    // Simulate AI generation delay
-    setTimeout(() => {
-      const sampleContents = [
-        `🛒 Visit Nanay Rita's Store! 
-
-Fresh vegetables, fruits, and daily essentials at unbeatable prices!
-
-🥬 Fresh Vegetables: ₱20-50
-🍎 Seasonal Fruits: ₱30-80  
-🥛 Daily Essentials: ₱15-100
-
-📍 Located at: Barangay San Jose, Batangas City
-⏰ Open: 6:00 AM - 8:00 PM daily
-
-Come visit us for quality products and friendly service! 🌟`,
-
-        `🌟 Nanay Rita's Fresh Market 
-
-Your neighborhood store for quality goods at affordable prices!
-
-🛍️ What we offer:
-• Farm-fresh vegetables
-• Ripe seasonal fruits  
-• Household essentials
-• Snacks and beverages
-
-💰 Great prices, great quality!
-📍 Barangay San Jose, Batangas City
-🕕 Daily: 6:00 AM - 8:00 PM
-
-Thank you for supporting local business! ❤️`,
-
-        `🏪 Nanay Rita's General Store
-
-Quality products • Affordable prices • Friendly service
-
-🥕 Fresh produce daily
-🍌 Seasonal fruits available
-🧴 Household necessities
-☕ Snacks & refreshments
-
-📍 Find us at: Barangay San Jose, Batangas City
-⏰ Store hours: 6:00 AM - 8:00 PM
-
-Supporting our community, one customer at a time! 🤝`
-      ];
-      
-      const randomContent = sampleContents[Math.floor(Math.random() * sampleContents.length)];
-      setContent(randomContent);
+    setContent(newShare);
+    } catch(e){
+      console.error('Error during regeneration', e);
+      Alert.alert('Error', 'Something went wrong while generating new message');
+    } finally {
       setIsRegenerating(false);
-    }, 1500);
-  };
+    }
+
+  }
 
   const handleShare = async () => {
     try {
       setIsSharing(true);
-      
+
       // Validate content
       if (!content || content.trim().length === 0) {
         Alert.alert('Error', 'Please add some content to share');
@@ -147,19 +119,19 @@ Supporting our community, one customer at a time! 🤝`
       }
     } catch (error) {
       console.error('Share error:', error);
-      
+
       // Fallback to clipboard
       try {
         Clipboard.setString(content);
         Alert.alert(
-          'Share Failed', 
+          'Share Failed',
           'Unable to share directly. Content copied to clipboard instead. You can paste it in your preferred app.',
           [{ text: 'OK' }]
         );
       } catch (clipboardError) {
         console.error('Clipboard error:', clipboardError);
         Alert.alert(
-          'Error', 
+          'Error',
           'Unable to share or copy content. Please try again.',
           [{ text: 'OK' }]
         );
@@ -172,7 +144,7 @@ Supporting our community, one customer at a time! 🤝`
   return (
     <View style={styles.container}>
       {/* Header */}
-      <Animated.View 
+      <Animated.View
         style={[
           styles.header,
           {
@@ -199,7 +171,7 @@ Supporting our community, one customer at a time! 🤝`
 
       {/* Content Card */}
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <Animated.View 
+        <Animated.View
           style={[
             styles.contentContainer,
             {
@@ -221,45 +193,51 @@ Supporting our community, one customer at a time! 🤝`
             },
           ]}
         >
-          {/* Gradient Border Wrapper */}
-          <View style={styles.gradientWrapper}>
-            <View style={styles.gradientBorderContainer}>
-              <LinearGradient
-                colors={['#FF6B9D', '#4D0045', '#8B5FBF', '#D946EF', '#FF6B9D']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.gradientBorder}
-              />
-            </View>
-            
-            {/* Content Card */}
-            <View style={styles.contentCard}>
-              <TextInput
-                style={[
-                  styles.editableText,
-                  { fontFamily: getFontFamily('regular', fontsLoaded) },
-                  isEditing && styles.editableTextFocused
-                ]}
-                value={content}
-                onChangeText={setContent}
-                multiline
-                textAlignVertical="top"
-                placeholder="Enter your store information..."
-                placeholderTextColor="#999"
-                onFocus={() => setIsEditing(true)}
-                onBlur={() => setIsEditing(false)}
-              />
-            </View>
+          <View style={styles.gradientBorderContainer}>
+            <LinearGradient
+              colors={['#8B5CF6', '#EC4899', '#F97316']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.gradientBorder}
+            >
+              <View style={styles.contentCard}>
+                <View style={styles.cardHeader}>
+                  <View style={styles.cardIconContainer}>
+                    <Ionicons name="megaphone" size={20} color="#8B5CF6" />
+                  </View>
+                  <Text style={[styles.cardTitle, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>
+                    Your Store Post
+                  </Text>
+                </View>
+                <TextInput
+                  style={[
+                    styles.editableText,
+                    { fontFamily: getFontFamily('regular', fontsLoaded) },
+                    isEditing && styles.editableTextFocused
+                  ]}
+                  value={content}
+                  onChangeText={setContent}
+                  multiline
+                  textAlignVertical="top"
+                  placeholder="Generating your perfect store post..."
+                  placeholderTextColor="#9CA3AF"
+                  onFocus={() => setIsEditing(true)}
+                  onBlur={() => setIsEditing(false)}
+                />
+              </View>
+            </LinearGradient>
           </View>
-          
-          <Text style={[styles.helperText, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>
-            {isEditing ? 'Tap outside to finish editing' : 'Click to edit'}
-          </Text>
+          <View style={styles.helperContainer}>
+            <Ionicons name="information-circle-outline" size={16} color="#6B7280" />
+            <Text style={[styles.helperText, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>
+              {isEditing ? 'Tap outside to finish editing' : 'Tap to customize your message'}
+            </Text>
+          </View>
         </Animated.View>
       </TouchableWithoutFeedback>
 
       {/* Action Buttons */}
-      <Animated.View 
+      <Animated.View
         style={[
           styles.buttonContainer,
           {
@@ -275,32 +253,41 @@ Supporting our community, one customer at a time! 🤝`
           },
         ]}
       >
-        <TouchableOpacity 
-          style={styles.downloadButton}
+        <TouchableOpacity
+          style={styles.iconButton}
           onPress={() => Alert.alert('Download', 'Download feature coming soon!')}
         >
-          <Ionicons name="download-outline" size={24} color="#4D0045" />
+          <Ionicons name="download-outline" size={20} color="#6B7280" />
         </TouchableOpacity>
 
         <Animated.View style={{ transform: [{ scale: regenerateAnimation }] }}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.regenerateButton, isRegenerating && styles.regenerateButtonDisabled]}
             onPress={handleRegenerate}
             disabled={isRegenerating}
           >
+            <Ionicons name="refresh-outline" size={20} color="#8B5CF6" />
             <Text style={[styles.regenerateButtonText, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>
-              {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+              {isRegenerating ? 'Generating...' : 'Regenerate'}
             </Text>
           </TouchableOpacity>
         </Animated.View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.shareButton}
           onPress={handleShare}
         >
-          <Text style={[styles.shareButtonText, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>
-            Share
-          </Text>
+          <LinearGradient
+            colors={['#8B5CF6', '#EC4899']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.shareButtonGradient}
+          >
+            <Ionicons name="share-outline" size={20} color="#FFFFFF" />
+            <Text style={[styles.shareButtonText, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>
+              Share
+            </Text>
+          </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -312,181 +299,191 @@ export default SharePage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA', // Slightly warmer background
+    backgroundColor: '#F8FAFC',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 40,
-    paddingHorizontal: 24, // Increased for better spacing
-    paddingBottom: 24, // Increased for better spacing
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     backgroundColor: '#FFFFFF',
-    borderBottomWidth: 0, // Removed border for cleaner look
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
     shadowOpacity: 0.05,
-    shadowRadius: 10,
+    shadowRadius: 4,
     elevation: 2,
   },
   backButton: {
-    width: 44, // Larger touch target
-    height: 44,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 22,
-    backgroundColor: '#F8F9FA',
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
   },
   headerTitle: {
-    fontSize: 24,
-    color: '#1A1A1A', // Darker for better contrast
+    fontSize: 22,
+    color: '#1E293B',
     flex: 1,
     textAlign: 'center',
-    marginRight: 44, // Compensate for back button width
-    fontWeight: '600',
+    marginRight: 40,
   },
   headerSpacer: {
-    width: 44,
+    width: 40,
   },
   contentContainer: {
     flex: 1,
-    paddingHorizontal: 24, // Increased padding
-    paddingTop: 40, // More generous top spacing
+    paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 20,
-    position: 'relative',
-  },
-  gradientWrapper: {
-    position: 'relative',
   },
   gradientBorderContainer: {
-    position: 'absolute',
-    top: -3, // Offset to create border effect
-    left: -3,
-    right: -3,
-    bottom: -3,
-    zIndex: 0,
-    borderRadius: 23, // Slightly larger than content card
+    borderRadius: 20,
+    padding: 2,
   },
   gradientBorder: {
-    flex: 1,
-    borderRadius: 23,
+    borderRadius: 20,
+    padding: 2,
   },
   contentCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20, // More rounded corners
-    padding: 32, // More generous padding
+    borderRadius: 18,
+    padding: 24,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 8,
     },
-    shadowOpacity: 0.08, // Softer shadow
-    shadowRadius: 20,
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
     elevation: 8,
-    zIndex: 1, // Ensure it's above the gradient
-    position: 'relative',
   },
-  generatedText: {
-    fontSize: 16,
-    color: '#333',
-    lineHeight: 24,
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  cardIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  cardTitle: {
+    fontSize: 18,
+    color: '#1E293B',
   },
   editableText: {
     fontSize: 16,
-    color: '#2D3748', // Better text color
-    lineHeight: 26, // Improved line height
+    color: '#374151',
+    lineHeight: 26,
     padding: 0,
-    minHeight: 120, // Slightly larger
+    minHeight: 120,
     textAlignVertical: 'top',
-    fontWeight: '400',
   },
   editableTextFocused: {
-    borderColor: '#4D0045',
+    borderColor: '#8B5CF6',
     borderWidth: 2,
     borderRadius: 12,
-    padding: 16,
-    backgroundColor: '#FAFBFC', // Subtle background when focused
+    padding: 12,
+    backgroundColor: '#FAFBFF',
+  },
+  helperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    gap: 6,
   },
   helperText: {
     fontSize: 14,
-    color: '#718096', // More muted color
-    textAlign: 'center',
-    marginTop: 16, // Increased spacing
-    fontWeight: '400',
+    color: '#6B7280',
   },
   buttonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 40,
     paddingBottom: 40,
-    gap: 20, // Increased gap
+    gap: 16,
   },
-  downloadButton: {
-    width: 56, // Larger
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#FFFFFF',
+  iconButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F8FAFC',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   regenerateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 28, // More rounded
-    paddingHorizontal: 28, // Better padding
-    paddingVertical: 16,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderWidth: 2,
-    borderColor: '#4D0045',
-    shadowColor: '#000',
+    borderColor: '#8B5CF6',
+    gap: 8,
+    shadowColor: '#8B5CF6',
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
     elevation: 4,
-    minWidth: 120, // Ensure consistent width
   },
   regenerateButtonDisabled: {
     opacity: 0.6,
   },
   regenerateButtonText: {
-    color: '#4D0045',
-    fontSize: 16,
-    textAlign: 'center',
-    fontWeight: '600',
+    color: '#8B5CF6',
+    fontSize: 15,
   },
   shareButton: {
-    backgroundColor: '#4D0045',
-    borderRadius: 28, // More rounded
-    paddingHorizontal: 32, // Better padding
-    paddingVertical: 16,
-    shadowColor: '#4D0045',
+    borderRadius: 16,
+    shadowColor: '#8B5CF6',
     shadowOffset: {
       width: 0,
       height: 6,
     },
     shadowOpacity: 0.25,
     shadowRadius: 12,
-    elevation: 8,
-    minWidth: 100, // Ensure consistent width
+    elevation: 6,
+  },
+  shareButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 16,
+    gap: 8,
   },
   shareButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    textAlign: 'center',
-    fontWeight: '600',
+    fontSize: 15,
   },
-}); 
+});
