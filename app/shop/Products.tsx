@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import type { View as RNView } from 'react-native';
 import { getFontFamily } from '../../components/FontConfig';
 
 const { width } = Dimensions.get('window');
@@ -19,7 +20,7 @@ interface ProductsProps {
 }
 
 const Products: React.FC<ProductsProps> = ({ products, fontsLoaded = true, onProductSale }) => {
-  const productRefs = useRef<{ [key: string]: TouchableOpacity | null }>({});
+  const productRefs = useRef<{ [key: string]: React.RefObject<any> }>({});
 
   // Arrange products in rows of 3
   const rows = [];
@@ -36,9 +37,8 @@ const Products: React.FC<ProductsProps> = ({ products, fontsLoaded = true, onPro
     }
 
     // Get the position of the tapped product
-    const productRef = productRefs.current[product.id];
-    if (productRef && onProductSale) {
-      productRef.measure((x, y, width, height, pageX, pageY) => {
+    if (productRefs.current[product.id] && productRefs.current[product.id]!.current && onProductSale) {
+      (productRefs.current[product.id]!.current as any).measure((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
         const position = {
           x: pageX + width / 2, // Center horizontally
           y: pageY + height / 2  // Center vertically
@@ -52,7 +52,7 @@ const Products: React.FC<ProductsProps> = ({ products, fontsLoaded = true, onPro
   };
 
   // Calculate responsive dimensions
-  const cardWidth = Math.max(100, (width - 112) / 3); // Better spacing calculation
+  const cardWidth = Math.max(100, (width - 2 * 40 - 2 * 20) / 3); // 20px padding on each side, 12px gap between cards
   const imageSize = Math.max(48, cardWidth * 0.55);
   const cardHeight = Math.max(140, cardWidth * 1.45);
 
@@ -60,44 +60,52 @@ const Products: React.FC<ProductsProps> = ({ products, fontsLoaded = true, onPro
     <View style={styles.grid}>
       {rows.map((row, rowIndex) => (
         <View style={styles.row} key={rowIndex}>
-          {row.map((product) => (
-            <TouchableOpacity
-              key={product.id}
-              ref={(ref) => {
-                productRefs.current[product.id] = ref;
-              }}
-              style={[
-                styles.card, 
-                { width: cardWidth, height: cardHeight },
-                product.stock <= 0 && styles.outOfStockCard
-              ]}
-              onPress={() => handleProductPress(product)}
-              activeOpacity={0.75}
-            >
-              <View style={styles.cardContent}>
-                <Text style={[styles.price, { fontFamily: getFontFamily('bold', fontsLoaded), fontSize: Math.min(18, cardWidth * 0.15) }]}>
-                  {`₱${product.price.toFixed(2)}`}
-                </Text>
-                {product.hasImage ? (
-                  <View style={[styles.imagePlaceholder, { width: imageSize, height: imageSize, borderRadius: imageSize / 2 }]} />
-                ) : (
-                  <View style={[styles.imagePlaceholderEmpty, { width: imageSize * 0.6, height: imageSize * 0.6, borderRadius: imageSize * 0.3 }]} />
-                )}
-                <Text style={[styles.name, { fontFamily: getFontFamily('medium', fontsLoaded), fontSize: Math.min(14, cardWidth * 0.12) }]}>
-                  {product.name.toLowerCase()}
-                </Text>
-                <View style={[styles.stockContainer, { backgroundColor: product.stock > 0 ? '#E8F5E8' : '#FFE8E8' }]}>
-                  <Text style={[styles.stock, { 
-                    fontFamily: getFontFamily('medium', fontsLoaded), 
-                    fontSize: Math.min(11, cardWidth * 0.09),
-                    color: product.stock > 0 ? '#2E7D32' : '#C62828'
-                  }]}>
-                    {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+          {row.map((product, colIndex) => {
+            const isLastInRow = colIndex === 2;
+            return (
+              <TouchableOpacity
+                key={product.id}
+                ref={ref => {
+                  if (!productRefs.current[product.id]) {
+                    productRefs.current[product.id] = React.createRef<any>();
+                  }
+                  productRefs.current[product.id].current = ref as any;
+                }}
+                style={[
+                  styles.card,
+                  { width: cardWidth, height: cardHeight },
+                  product.stock <= 0 && styles.outOfStockCard,
+                  !isLastInRow && { marginRight: 12 },
+                  // Remove marginRight for last card in row
+                ]}
+                onPress={() => handleProductPress(product)}
+                activeOpacity={0.75}
+              >
+                <View style={styles.cardContent}>
+                  <Text style={[styles.price, { fontFamily: getFontFamily('bold', fontsLoaded), fontSize: Math.min(18, cardWidth * 0.15) }]}> 
+                    {`₱${product.price.toFixed(2)}`}
                   </Text>
+                  {product.hasImage ? (
+                    <View style={[styles.imagePlaceholder, { width: imageSize, height: imageSize, borderRadius: imageSize / 2 }]} />
+                  ) : (
+                    <View style={[styles.imagePlaceholderEmpty, { width: imageSize * 0.6, height: imageSize * 0.6, borderRadius: imageSize * 0.3 }]} />
+                  )}
+                  <Text style={[styles.name, { fontFamily: getFontFamily('medium', fontsLoaded), fontSize: Math.min(14, cardWidth * 0.12) }]}> 
+                    {product.name.toLowerCase()}
+                  </Text>
+                  <View style={[styles.stockContainer, { backgroundColor: product.stock > 0 ? '#E8F5E8' : '#FFE8E8' }]}> 
+                    <Text style={[styles.stock, { 
+                      fontFamily: getFontFamily('medium', fontsLoaded), 
+                      fontSize: Math.min(11, cardWidth * 0.09),
+                      color: product.stock > 0 ? '#2E7D32' : '#C62828'
+                    }]}> 
+                      {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            );
+          })}
           {/* Fill empty spots for last row if needed */}
           {row.length < 3 && Array.from({ length: 3 - row.length }).map((_, i) => (
             <View key={`empty-${i}`} style={[styles.card, { backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0, width: cardWidth, height: cardHeight }]} />
@@ -111,19 +119,19 @@ const Products: React.FC<ProductsProps> = ({ products, fontsLoaded = true, onPro
 const styles = StyleSheet.create({
   grid: {
     width: '100%',
-    paddingHorizontal: 4,
+    paddingHorizontal: 8, // Left and right margins are now equal and consistent
     paddingBottom: 20, // Add more bottom padding
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     marginBottom: 16, // Reduced from 20 for tighter spacing
     paddingHorizontal: 0,
   },
   card: {
     backgroundColor: '#fff',
     borderRadius: 20,
-    marginHorizontal: 6,
+    // marginHorizontal removed for consistent left alignment
     paddingVertical: 16,
     paddingHorizontal: 12,
     shadowColor: '#4A154B',

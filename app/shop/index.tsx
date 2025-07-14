@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, SafeAreaView, TouchableOpacity, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, SafeAreaView, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { getFontFamily } from '../../components/FontConfig';
 import Products from './Products';
 import ViewAnalyticsCard from './ViewAnalyticsCard';
@@ -72,6 +72,19 @@ const Shop: React.FC<ShopProps> = ({ fontsLoaded = true, onNavigateToResources }
   const [stackIndicator, setStackIndicator] = useState<StackIndicatorData | null>(null);
   const stackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const STACK_TIMEOUT = 1500; // 1.5 seconds before showing accumulated result
+
+  // Custom scrollbar state for products grid
+  const [scrollY, setScrollY] = useState(0);
+  const [contentHeight, setContentHeight] = useState(1);
+  const [containerHeight, setContainerHeight] = useState(1);
+
+  // Calculate scrollbar height and position
+  const scrollbarMargin = 20;
+  const scrollbarHeight = 100;
+  const maxScroll = contentHeight - containerHeight;
+  let rawTop = maxScroll > 0 ? (scrollY / maxScroll) * (containerHeight - scrollbarHeight - 2 * scrollbarMargin) : 0;
+  rawTop = Math.max(0, Math.min(rawTop, containerHeight - scrollbarHeight - 2 * scrollbarMargin));
+  const scrollbarTop = scrollbarMargin + rawTop;
 
   const toggleMenu = () => {
     setSideMenuVisible(!isSideMenuVisible);
@@ -312,9 +325,20 @@ const Shop: React.FC<ShopProps> = ({ fontsLoaded = true, onNavigateToResources }
             contentContainerStyle={styles.productsScrollContent} 
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled={true}
+            onScroll={e => setScrollY(e.nativeEvent.contentOffset.y)}
+            onContentSizeChange={(w, h) => setContentHeight(h)}
+            onLayout={e => setContainerHeight(e.nativeEvent.layout.height)}
+            scrollEventThrottle={16}
           >
             <Products products={products} fontsLoaded={fontsLoaded} onProductSale={handleProductSale} />
           </ScrollView>
+          {/* Custom Scrollbar Overlay */}
+          <View pointerEvents="none" style={[styles.scrollWheel, { height: scrollbarHeight, top: scrollbarTop }]}> 
+            <Image
+              source={require('../../assets/png/scrollbar.png')}
+              style={{ width: '100%', height: '100%', resizeMode: 'stretch' }}
+            />
+          </View>
           <TouchableOpacity style={styles.refreshBtn} onPress={handleUndo}>
             <LinearGradient
               colors={['#6A2A6B', '#4A154B']}
@@ -363,7 +387,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(74, 21, 75, 0.08)',
   },
   productsCardContainer: {
-    marginHorizontal: 20,
+    marginHorizontal: 8, // Left and right margins are now equal and consistent
     marginBottom: 24,
     borderRadius: 24,
     overflow: 'hidden',
@@ -417,7 +441,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingTop: 20,
     paddingBottom: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8, // Left and right margins are now equal and consistent
     position: 'relative',
     flex: 1,
     height: 400, // Set a fixed height for the scrollable area
@@ -443,7 +467,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   analyticsCardWrapper: {
-    marginHorizontal: 20,
+    marginHorizontal: 8, // Left and right margins are now equal and consistent
     paddingBottom: 40, // Add bottom padding for safe area
   },
   // New dynamic stack indicator styles
@@ -500,5 +524,12 @@ const styles = StyleSheet.create({
   },
   productsScrollContent: {
     paddingBottom: 80, // Add padding at the bottom for the refresh button
+  },
+  scrollWheel: {
+    position: 'absolute',
+    right: 0,
+    width: 20,
+    resizeMode: 'stretch',
+    zIndex: 10,
   },
 });

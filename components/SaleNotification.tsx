@@ -35,7 +35,6 @@ const SaleNotification: React.FC<SaleNotificationProps> = ({ visible, productNam
       Animated.parallel([
         Animated.spring(translateY, {
           toValue: 0,
-          duration: 400,
           useNativeDriver: true,
           tension: 80,
           friction: 8,
@@ -47,7 +46,6 @@ const SaleNotification: React.FC<SaleNotificationProps> = ({ visible, productNam
         }),
         Animated.spring(scale, {
           toValue: 1,
-          duration: 400,
           useNativeDriver: true,
           tension: 100,
           friction: 7,
@@ -56,7 +54,6 @@ const SaleNotification: React.FC<SaleNotificationProps> = ({ visible, productNam
         // Icon pop animation after main animation
         Animated.spring(iconScale, {
           toValue: 1,
-          duration: 300,
           useNativeDriver: true,
           tension: 150,
           friction: 8,
@@ -276,8 +273,7 @@ const SaleNotification: React.FC<SaleNotificationProps> = ({ visible, productNam
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    left: 20,
-    right: 20,
+    marginHorizontal: 20,
     bottom: 100,
     alignItems: 'center',
     zIndex: 1000,
@@ -293,7 +289,9 @@ const styles = StyleSheet.create({
     elevation: 8,
     overflow: 'hidden',
     position: 'relative',
-    width: 280,
+    minWidth: 240,
+    maxWidth: width - 40, // Ensures it never exceeds the screen minus margins
+    alignSelf: 'center',
   },
   saleContent: {
     flexDirection: 'row',
