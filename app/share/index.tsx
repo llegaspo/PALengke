@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Animated, Easing, Share, Alert, TextInput, TouchableWithoutFeedback, Keyboard, Platform, Clipboard } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { getFontFamily } from '../../components/FontConfig';
+import { ShareStoreAI } from '../../lib/AI/shareStoreAI';
+import { LoadSampleProducts } from '../../lib/inventory';
 
+LoadSampleProducts();
 interface SharePageProps {
   fontsLoaded?: boolean;
   onBack?: () => void;
@@ -11,21 +13,30 @@ interface SharePageProps {
 
 const SharePage: React.FC<SharePageProps> = ({ fontsLoaded = true, onBack }) => {
   const [isRegenerating, setIsRegenerating] = useState(false);
-  const [content, setContent] = useState(`🛒 Visit Nanay Rita's Store! 
-
-Fresh vegetables, fruits, and daily essentials at unbeatable prices!
-
-🥬 Fresh Vegetables: ₱20-50
-🍎 Seasonal Fruits: ₱30-80  
-🥛 Daily Essentials: ₱15-100
-
-📍 Located at: Barangay San Jose, Batangas City
-⏰ Open: 6:00 AM - 8:00 PM daily
-
-Come visit us for quality products and friendly service! 🌟`);
+//   const [content, setContent] = useState(`🛒 Visit Nanay Rita's Store!
+//
+// Fresh vegetables, fruits, and daily essentials at unbeatable prices!
+//
+// 🥬 Fresh Vegetables: ₱20-50
+// 🍎 Seasonal Fruits: ₱30-80
+// 🥛 Daily Essentials: ₱15-100
+//
+// 📍 Located at: Barangay San Jose, Batangas City
+// ⏰ Open: 6:00 AM - 8:00 PM daily
+//
+// Come visit us for quality products and friendly service! 🌟`);
+  const [content, setContent] = useState('')
   const [isEditing, setIsEditing] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
 
+  useEffect(() => {
+    const fetch = async() => {
+      const result = await ShareStoreAI({storeName: 'Nanay Rita', location: 'Lahug'})
+      setContent(result);
+    }
+
+    fetch();
+  }, [])
   // Animation refs
   const headerAnimation = useRef(new Animated.Value(0)).current;
   const contentAnimation = useRef(new Animated.Value(0)).current;
@@ -53,7 +64,8 @@ Come visit us for quality products and friendly service! 🌟`);
 
   const handleRegenerate = async () => {
     setIsRegenerating(true);
-    
+    const newShare = await ShareStoreAI({storeName: 'Nanay Rita', location: 'Lahug'})
+
     // Animate regenerate button
     Animated.sequence([
       Animated.timing(regenerateAnimation, {
@@ -68,63 +80,13 @@ Come visit us for quality products and friendly service! 🌟`);
       }),
     ]).start();
 
-    // Simulate AI generation delay
-    setTimeout(() => {
-      const sampleContents = [
-        `🛒 Visit Nanay Rita's Store! 
-
-Fresh vegetables, fruits, and daily essentials at unbeatable prices!
-
-🥬 Fresh Vegetables: ₱20-50
-🍎 Seasonal Fruits: ₱30-80  
-🥛 Daily Essentials: ₱15-100
-
-📍 Located at: Barangay San Jose, Batangas City
-⏰ Open: 6:00 AM - 8:00 PM daily
-
-Come visit us for quality products and friendly service! 🌟`,
-
-        `🌟 Nanay Rita's Fresh Market 
-
-Your neighborhood store for quality goods at affordable prices!
-
-🛍️ What we offer:
-• Farm-fresh vegetables
-• Ripe seasonal fruits  
-• Household essentials
-• Snacks and beverages
-
-💰 Great prices, great quality!
-📍 Barangay San Jose, Batangas City
-🕕 Daily: 6:00 AM - 8:00 PM
-
-Thank you for supporting local business! ❤️`,
-
-        `🏪 Nanay Rita's General Store
-
-Quality products • Affordable prices • Friendly service
-
-🥕 Fresh produce daily
-🍌 Seasonal fruits available
-🧴 Household necessities
-☕ Snacks & refreshments
-
-📍 Find us at: Barangay San Jose, Batangas City
-⏰ Store hours: 6:00 AM - 8:00 PM
-
-Supporting our community, one customer at a time! 🤝`
-      ];
-      
-      const randomContent = sampleContents[Math.floor(Math.random() * sampleContents.length)];
-      setContent(randomContent);
-      setIsRegenerating(false);
-    }, 1500);
-  };
+    setContent(newShare);
+  }
 
   const handleShare = async () => {
     try {
       setIsSharing(true);
-      
+
       // Validate content
       if (!content || content.trim().length === 0) {
         Alert.alert('Error', 'Please add some content to share');
@@ -147,19 +109,19 @@ Supporting our community, one customer at a time! 🤝`
       }
     } catch (error) {
       console.error('Share error:', error);
-      
+
       // Fallback to clipboard
       try {
         Clipboard.setString(content);
         Alert.alert(
-          'Share Failed', 
+          'Share Failed',
           'Unable to share directly. Content copied to clipboard instead. You can paste it in your preferred app.',
           [{ text: 'OK' }]
         );
       } catch (clipboardError) {
         console.error('Clipboard error:', clipboardError);
         Alert.alert(
-          'Error', 
+          'Error',
           'Unable to share or copy content. Please try again.',
           [{ text: 'OK' }]
         );
@@ -172,7 +134,7 @@ Supporting our community, one customer at a time! 🤝`
   return (
     <View style={styles.container}>
       {/* Header */}
-      <Animated.View 
+      <Animated.View
         style={[
           styles.header,
           {
@@ -199,7 +161,7 @@ Supporting our community, one customer at a time! 🤝`
 
       {/* Content Card */}
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <Animated.View 
+        <Animated.View
           style={[
             styles.contentContainer,
             {
@@ -221,37 +183,23 @@ Supporting our community, one customer at a time! 🤝`
             },
           ]}
         >
-          {/* Gradient Border Wrapper */}
-          <View style={styles.gradientWrapper}>
-            <View style={styles.gradientBorderContainer}>
-              <LinearGradient
-                colors={['#FF6B9D', '#4D0045', '#8B5FBF', '#D946EF', '#FF6B9D']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.gradientBorder}
-              />
-            </View>
-            
-            {/* Content Card */}
-            <View style={styles.contentCard}>
-              <TextInput
-                style={[
-                  styles.editableText,
-                  { fontFamily: getFontFamily('regular', fontsLoaded) },
-                  isEditing && styles.editableTextFocused
-                ]}
-                value={content}
-                onChangeText={setContent}
-                multiline
-                textAlignVertical="top"
-                placeholder="Enter your store information..."
-                placeholderTextColor="#999"
-                onFocus={() => setIsEditing(true)}
-                onBlur={() => setIsEditing(false)}
-              />
-            </View>
+          <View style={styles.contentCard}>
+            <TextInput
+              style={[
+                styles.editableText,
+                { fontFamily: getFontFamily('regular', fontsLoaded) },
+                isEditing && styles.editableTextFocused
+              ]}
+              value={content}
+              onChangeText={setContent}
+              multiline
+              textAlignVertical="top"
+              placeholder="Regenerating shareable post..."
+              placeholderTextColor="#999"
+              onFocus={() => setIsEditing(true)}
+              onBlur={() => setIsEditing(false)}
+            />
           </View>
-          
           <Text style={[styles.helperText, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>
             {isEditing ? 'Tap outside to finish editing' : 'Click to edit'}
           </Text>
@@ -259,7 +207,7 @@ Supporting our community, one customer at a time! 🤝`
       </TouchableWithoutFeedback>
 
       {/* Action Buttons */}
-      <Animated.View 
+      <Animated.View
         style={[
           styles.buttonContainer,
           {
@@ -275,7 +223,7 @@ Supporting our community, one customer at a time! 🤝`
           },
         ]}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.downloadButton}
           onPress={() => Alert.alert('Download', 'Download feature coming soon!')}
         >
@@ -283,7 +231,7 @@ Supporting our community, one customer at a time! 🤝`
         </TouchableOpacity>
 
         <Animated.View style={{ transform: [{ scale: regenerateAnimation }] }}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.regenerateButton, isRegenerating && styles.regenerateButtonDisabled]}
             onPress={handleRegenerate}
             disabled={isRegenerating}
@@ -294,7 +242,7 @@ Supporting our community, one customer at a time! 🤝`
           </TouchableOpacity>
         </Animated.View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.shareButton}
           onPress={handleShare}
         >
@@ -312,81 +260,52 @@ export default SharePage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA', // Slightly warmer background
+    backgroundColor: '#F5F5F5',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 40,
-    paddingHorizontal: 24, // Increased for better spacing
-    paddingBottom: 24, // Increased for better spacing
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     backgroundColor: '#FFFFFF',
-    borderBottomWidth: 0, // Removed border for cleaner look
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
   },
   backButton: {
-    width: 44, // Larger touch target
-    height: 44,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 22,
-    backgroundColor: '#F8F9FA',
   },
   headerTitle: {
     fontSize: 24,
-    color: '#1A1A1A', // Darker for better contrast
+    color: '#4D0045',
     flex: 1,
     textAlign: 'center',
-    marginRight: 44, // Compensate for back button width
-    fontWeight: '600',
+    marginRight: 40, // Compensate for back button width
   },
   headerSpacer: {
-    width: 44,
+    width: 40,
   },
   contentContainer: {
     flex: 1,
-    paddingHorizontal: 24, // Increased padding
-    paddingTop: 40, // More generous top spacing
+    paddingHorizontal: 20,
+    paddingTop: 30,
     paddingBottom: 20,
-    position: 'relative',
-  },
-  gradientWrapper: {
-    position: 'relative',
-  },
-  gradientBorderContainer: {
-    position: 'absolute',
-    top: -3, // Offset to create border effect
-    left: -3,
-    right: -3,
-    bottom: -3,
-    zIndex: 0,
-    borderRadius: 23, // Slightly larger than content card
-  },
-  gradientBorder: {
-    flex: 1,
-    borderRadius: 23,
   },
   contentCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20, // More rounded corners
-    padding: 32, // More generous padding
+    backgroundColor: '#E8D5E8',
+    borderRadius: 16,
+    padding: 25,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 4,
     },
-    shadowOpacity: 0.08, // Softer shadow
-    shadowRadius: 20,
-    elevation: 8,
-    zIndex: 1, // Ensure it's above the gradient
-    position: 'relative',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   generatedText: {
     fontSize: 16,
@@ -395,69 +314,63 @@ const styles = StyleSheet.create({
   },
   editableText: {
     fontSize: 16,
-    color: '#2D3748', // Better text color
-    lineHeight: 26, // Improved line height
-    padding: 0,
-    minHeight: 120, // Slightly larger
+    color: '#333',
+    lineHeight: 24,
+    padding: 0, // Remove default padding
+    minHeight: 100, // Ensure minimum height for multiline
     textAlignVertical: 'top',
-    fontWeight: '400',
   },
   editableTextFocused: {
     borderColor: '#4D0045',
-    borderWidth: 2,
-    borderRadius: 12,
-    padding: 16,
-    backgroundColor: '#FAFBFC', // Subtle background when focused
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
   },
   helperText: {
     fontSize: 14,
-    color: '#718096', // More muted color
+    color: '#999',
     textAlign: 'center',
-    marginTop: 16, // Increased spacing
-    fontWeight: '400',
+    marginTop: 10,
   },
   buttonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingBottom: 40,
-    gap: 20, // Increased gap
+    gap: 15,
   },
   downloadButton: {
-    width: 56, // Larger
-    height: 56,
-    borderRadius: 28,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   regenerateButton: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 28, // More rounded
-    paddingHorizontal: 28, // Better padding
-    paddingVertical: 16,
+    borderRadius: 25,
+    paddingHorizontal: 25,
+    paddingVertical: 15,
     borderWidth: 2,
     borderColor: '#4D0045',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-    minWidth: 120, // Ensure consistent width
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   regenerateButtonDisabled: {
     opacity: 0.6,
@@ -466,27 +379,24 @@ const styles = StyleSheet.create({
     color: '#4D0045',
     fontSize: 16,
     textAlign: 'center',
-    fontWeight: '600',
   },
   shareButton: {
     backgroundColor: '#4D0045',
-    borderRadius: 28, // More rounded
-    paddingHorizontal: 32, // Better padding
-    paddingVertical: 16,
+    borderRadius: 25,
+    paddingHorizontal: 30,
+    paddingVertical: 15,
     shadowColor: '#4D0045',
     shadowOffset: {
       width: 0,
-      height: 6,
+      height: 4,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
-    minWidth: 100, // Ensure consistent width
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
   },
   shareButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     textAlign: 'center',
-    fontWeight: '600',
   },
-}); 
+});

@@ -9,6 +9,7 @@ import Chat from "./chat";
 import Wallet from "./wallet";
 import SharePage from "./share";
 import SideMenu from "../components/SideMenu"; // Added import for SideMenu
+LogBox.ignoreAllLogs(false);
 
 // Suppress the Expo Router Fragment warning
 LogBox.ignoreLogs(['Warning: Invalid prop `style` supplied to `React.Fragment`']);
@@ -61,12 +62,11 @@ const App = () => {
       return <SharePage fontsLoaded={fontsLoaded} onBack={navigateBack} />;
     }
 
-    const props = { 
-      fontsLoaded, 
+    const props = {
+      fontsLoaded,
       onNavigateToShare: navigateToShare,
       toggleMenu: toggleMenu, // Pass toggleMenu function
     };
-    
     switch (activeTab) {
       case 'home':
         return <Home {...props} />;
