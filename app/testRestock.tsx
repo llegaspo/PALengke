@@ -1,8 +1,7 @@
-import { handleRestock } from '../lib/AI/restockAI';
 import { type  Product } from '../lib/inventory';
 import { useState } from 'react';
 
-export const products: Product =[{
+export const sampleProducts: Product[] =[{
   id: 'p1',
   name: 'Tuna',
   cost: 26,
@@ -68,7 +67,6 @@ export default  function TestRestockAI(){
   const [res, setRes] = useState('');
 
   const handleSubmit = async() => {
-    setRes(await handleRestock(products, 2))
   }
 
   return(
