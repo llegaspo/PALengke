@@ -18,6 +18,30 @@ export default function RootLayout(){
           title: 'palengke' // Changed from default 'index'
         }}
       />
+      <Stack.Screen 
+        name='language/index' 
+        options={{
+          title: 'palengke'
+        }}
+      />
+      <Stack.Screen 
+        name='onboarding/index' 
+        options={{
+          title: 'palengke'
+        }}
+      />
+      <Stack.Screen 
+        name='existing-storeoptions/index' 
+        options={{
+          title: 'palengke'
+        }}
+      />
+      <Stack.Screen 
+        name='existing-inventory/index' 
+        options={{
+          title: 'palengke'
+        }}
+      />
     </Stack>
   )
 }

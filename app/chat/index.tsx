@@ -36,7 +36,7 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true, onNavigateToShare }) =>
   const initialMessages: Message[] = [
     {
       id: 1,
-      text: "Hey there! You can call me Ate A.I. Do you need any advice for your growing business? I'm here to assist you!",
+      text: "Hello! I'm Ate A.I., your personal business assistant. 🤖\n\nI can help you with:\n\n- **Inventory management** (e.g., \"How many apples do I have left?\")\n- **Sales tracking** (e.g., \"What were my total sales yesterday?\")\n- **Business advice** (e.g., \"How can I attract more customers?\")\n\nWhat can I help you with today?",
       isBot: true,
       timestamp: new Date()
     },

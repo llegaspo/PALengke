@@ -8,6 +8,8 @@ import Shop from "./shop";
 import Chat from "./chat";
 import Wallet from "./wallet";
 import SharePage from "./share";
+import SideMenu from "../components/SideMenu"; // Added import for SideMenu
+LogBox.ignoreAllLogs(false);
 
 // Suppress the Expo Router Fragment warning
 LogBox.ignoreLogs(['Warning: Invalid prop `style` supplied to `React.Fragment`']);
@@ -17,6 +19,8 @@ const App = () => {
   const [currentScreen, setCurrentScreen] = useState('main'); // 'main' or 'share'
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [fontLoadingComplete, setFontLoadingComplete] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     const loadAppFonts = async () => {
@@ -34,6 +38,10 @@ const App = () => {
 
     loadAppFonts();
   }, []);
+
+  const toggleMenu = () => setIsMenuVisible(!isMenuVisible);
+  const closeMenu = () => setIsMenuVisible(false);
+  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
   const handleTabPress = (tab: string) => {
     setActiveTab(tab);
@@ -54,7 +62,11 @@ const App = () => {
       return <SharePage fontsLoaded={fontsLoaded} onBack={navigateBack} />;
     }
 
-    const props = { fontsLoaded, onNavigateToShare: navigateToShare };
+    const props = {
+      fontsLoaded,
+      onNavigateToShare: navigateToShare,
+      toggleMenu: toggleMenu, // Pass toggleMenu function
+    };
     switch (activeTab) {
       case 'home':
         return <Home {...props} />;
@@ -63,7 +75,7 @@ const App = () => {
       case 'chat':
         return <Chat {...props} />;
       case 'wallet':
-        return <Wallet {...props} />;
+        return <Wallet />;
       default:
         return <Home {...props} />;
     }
@@ -87,6 +99,13 @@ const App = () => {
           <BottomNavbar activeTab={activeTab} onTabPress={handleTabPress} fontsLoaded={fontsLoaded} />
         )}
       </View>
+      <SideMenu
+        isVisible={isMenuVisible}
+        onClose={closeMenu}
+        fontsLoaded={fontsLoaded}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={toggleDarkMode}
+      />
     </SafeAreaView>
   );
 };
