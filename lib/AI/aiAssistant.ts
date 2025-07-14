@@ -32,18 +32,21 @@ You are not just a chatbot—you are a reliable "Ate" that small vendors can tru
 `
 }
 export const AIAssistant = async(prompt: string) => {
-
-  await addMessage(STORAGE_KEY, initialChatMessage);
+  const checkMessage = await getMessages(STORAGE_KEY);
+  if(checkMessage.length === 0)
+    await addMessage(STORAGE_KEY, initialChatMessage);
 
   await addMessage(STORAGE_KEY, {role: 'user', content: prompt})
 
   const messages = await getMessages(STORAGE_KEY);
   console.log(messages);
 
-  const res = OpenAI({
+  const res = await OpenAI({
     model: 'gpt-4.1',
     messages,
   })
+
+  await addMessage(STORAGE_KEY, {role:'assistant', content: res});
 
   return res;
 }
