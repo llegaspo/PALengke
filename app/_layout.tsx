@@ -78,6 +78,12 @@ export default function RootLayout(){
         }}
       />
       <Stack.Screen
+        name='shop/EditProducts'
+        options={{
+          headerShown: false
+        }}
+      />
+      <Stack.Screen
         name='chat/index'
         options={{
           title: 'palengke',
