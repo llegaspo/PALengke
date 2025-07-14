@@ -8,6 +8,7 @@ import Shop from "../shop";
 import Chat from "../chat";
 import Wallet from "../wallet";
 import SharePage from "../share";
+import Resources from "../resources";
 import SideMenu from "../../components/SideMenu"; // Added import for SideMenu
 
 // Suppress the Expo Router Fragment warning
@@ -15,7 +16,7 @@ LogBox.ignoreLogs(['Warning: Invalid prop `style` supplied to `React.Fragment`']
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('home');
-  const [currentScreen, setCurrentScreen] = useState('main'); // 'main' or 'share'
+  const [currentScreen, setCurrentScreen] = useState('main'); // 'main' or 'share' or 'resources'
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [fontLoadingComplete, setFontLoadingComplete] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -51,6 +52,10 @@ const App = () => {
     setCurrentScreen('share');
   };
 
+  const navigateToResources = () => {
+    setCurrentScreen('resources');
+  };
+
   const navigateBack = () => {
     setCurrentScreen('main');
   };
@@ -61,9 +66,14 @@ const App = () => {
       return <SharePage fontsLoaded={fontsLoaded} onBack={navigateBack} />;
     }
 
+    if (currentScreen === 'resources') {
+      return <Resources fontsLoaded={fontsLoaded} />;
+    }
+
     const props = { 
       fontsLoaded, 
       onNavigateToShare: navigateToShare,
+      onNavigateToResources: navigateToResources,
       toggleMenu: toggleMenu, // Pass toggleMenu function
     };
     
@@ -105,6 +115,7 @@ const App = () => {
         fontsLoaded={fontsLoaded}
         isDarkMode={isDarkMode}
         onToggleDarkMode={toggleDarkMode}
+        onNavigateToResources={navigateToResources}
       />
     </SafeAreaView>
   );

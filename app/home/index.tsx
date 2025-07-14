@@ -8,9 +8,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 interface HomeProps {
   fontsLoaded?: boolean;
   onNavigateToShare?: () => void;
+  onNavigateToResources?: () => void;
 }
 
-const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare }) => {
+const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, onNavigateToResources }) => {
   const [isSideMenuVisible, setSideMenuVisible] = useState(false);
   
   // Animation refs
@@ -20,6 +21,7 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare }) =>
   const metricsAnimation = useRef(new Animated.Value(0)).current;
   const storyAnimation = useRef(new Animated.Value(0)).current;
   const quoteAnimation = useRef(new Animated.Value(0)).current;
+  const resourcesAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Stagger animations for smooth entrance
@@ -30,6 +32,7 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare }) =>
       { animation: metricsAnimation, delay: 600 },
       { animation: storyAnimation, delay: 800 },
       { animation: quoteAnimation, delay: 1000 },
+      { animation: resourcesAnimation, delay: 1200 },
     ];
 
     animations.forEach(({ animation, delay }) => {
@@ -314,6 +317,41 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare }) =>
             <Text style={[styles.shareText, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>
               Get more customers
             </Text>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Resources Section */}
+        <Animated.View 
+          style={[
+            styles.resourcesContainer,
+            {
+              opacity: resourcesAnimation,
+              transform: [
+                {
+                  translateY: resourcesAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [35, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <TouchableOpacity style={styles.resourcesCard} activeOpacity={0.8} onPress={onNavigateToResources}>
+            <View style={styles.resourcesContent}>
+              <View style={styles.resourcesIconContainer}>
+                <Ionicons name="library" size={24} color="#FFFFFF" />
+              </View>
+              <View style={styles.resourcesTextContainer}>
+                <Text style={[styles.resourcesQuestion, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>
+                  Having trouble starting your business?
+                </Text>
+                <Text style={[styles.resourcesButtonText, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>
+                  Resources
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+            </View>
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
@@ -659,5 +697,48 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 5,
+  },
+  resourcesContainer: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+  },
+  resourcesCard: {
+    backgroundColor: '#4D0045',
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  resourcesContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  resourcesIconContainer: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 12,
+    padding: 10,
+    marginRight: 15,
+  },
+  resourcesTextContainer: {
+    flex: 1,
+  },
+  resourcesQuestion: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    marginBottom: 5,
+  },
+  resourcesButtonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
   },
 }); 

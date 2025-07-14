@@ -101,6 +101,14 @@ export default function RootLayout(){
           headerLeft: () => null
         }}
       />
+      <Stack.Screen 
+        name='resources/index' 
+        options={{
+          title: 'palengke',
+          headerShown: true,
+          headerLeft: () => null
+        }}
+      />
     </Stack>
   )
 }
