@@ -97,7 +97,7 @@ export default function VendorsScreen() {
 
   const handleConfirm = () => {
     // You can add validation or save logic here
-    router.push('/existing');
+    router.push('/existing-inventory');
   };
 
   const renderStore = ({ item, index }: { item: typeof storeOptions[0], index: number }) => {
@@ -183,14 +183,11 @@ export default function VendorsScreen() {
         <View style={{ flex: 1 }} />
         
         {selectedStore && (
-          <Animated.View style={{ 
-            opacity: confirmAnimation, 
-            transform: [{ scale: confirmAnimation.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }] 
-          }}>
+          <View style={{ marginBottom: 24 }}>
             <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm} activeOpacity={0.7}>
               <Text style={[styles.confirmButtonText, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>Confirm</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         )}
       </View>
     </KeyboardAvoidingView>
