@@ -1,7 +1,7 @@
 import { type  Product } from '../lib/inventory';
 import { useState } from 'react';
 
-const sampleProducts: Product[] =[{
+export const sampleProducts: Product[] =[{
   id: 'p1',
   name: 'Tuna',
   cost: 26,
