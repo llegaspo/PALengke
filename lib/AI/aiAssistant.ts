@@ -48,5 +48,7 @@ export const AIAssistant = async(prompt: string) => {
 
   await addMessage(STORAGE_KEY, {role:'assistant', content: res});
 
+
   return res;
+
 }
