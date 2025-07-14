@@ -38,6 +38,9 @@ const App = () => {
     };
 
     loadAppFonts();
+    
+    // Start on language screen
+    setCurrentScreen('language');
   }, []);
 
   const toggleMenu = () => setIsMenuVisible(!isMenuVisible);
@@ -61,6 +64,12 @@ const App = () => {
 
     if (currentScreen === 'share') {
       return <SharePage fontsLoaded={fontsLoaded} onBack={navigateBack} />;
+    }
+
+    if (currentScreen === 'language') {
+      // Import and render the language screen
+      const LanguageScreen = require('./language').default;
+      return <LanguageScreen fontsLoaded={fontsLoaded} onBack={() => setCurrentScreen('main')} />;
     }
 
     const props = {
