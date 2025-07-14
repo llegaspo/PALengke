@@ -2,7 +2,7 @@ import { handleRestock } from '../lib/AI/restockAI';
 import { type  Product } from '../lib/inventory';
 import { useState } from 'react';
 
-const products: Product =[{
+export const products: Product =[{
   id: 'p1',
   name: 'Tuna',
   cost: 26,

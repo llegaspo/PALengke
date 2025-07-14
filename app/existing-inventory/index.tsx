@@ -188,9 +188,7 @@ export default function ExistingInventoryScreen() {
         opacity: headerAnimation, 
         transform: [{ translateY: headerAnimation.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }] 
       }}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backArrow}>
-          <Image source={require('../../assets/png/arrowleft.png')} style={styles.backArrowImage} />
-        </TouchableOpacity>
+        {/* Removed back button */}
         <GradientText text="Let's set you up!" style={[styles.title, { paddingHorizontal: 20 }]} />
         <Text style={[styles.subheading, { fontFamily: getFontFamily('regular', fontsLoaded), paddingHorizontal: 20 }]}>Start by listing your existing products.</Text>
       </Animated.View>
@@ -684,7 +682,7 @@ const styles = StyleSheet.create({
   confirmBtn: {
     backgroundColor: '#69006c',
     borderRadius: 24,
-    width: '100%',
+    width: '90%',
     paddingVertical: 16,
     paddingHorizontal: 20,
     alignItems: 'center',
