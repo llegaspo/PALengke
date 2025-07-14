@@ -1,16 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, SafeAreaView, Text, LogBox } from 'react-native';
-import { db } from "../firebase/firebaseConfig";
-import BottomNavbar from "../components/BottomNavbar";
-import { loadFonts, getFontFamily } from "../components/FontConfig";
-import Home from "./home";
-import Shop from "./shop";
-import Chat from "./chat";
-import Wallet from "./wallet";
-import SharePage from "./share";
-import SideMenu from "../components/SideMenu"; // Added import for SideMenu
-LogBox.ignoreAllLogs(false);
+import { db } from "../../firebase/firebaseConfig";
+import BottomNavbar from "../../components/BottomNavbar";
+import { loadFonts, getFontFamily } from "../../components/FontConfig";
+import Home from "../home";
+import Shop from "../shop";
+import Chat from "../chat";
+import Wallet from "../wallet";
+import SharePage from "../share";
+import SideMenu from "../../components/SideMenu"; // Added import for SideMenu
 
 // Suppress the Expo Router Fragment warning
 LogBox.ignoreLogs(['Warning: Invalid prop `style` supplied to `React.Fragment`']);
@@ -38,9 +36,6 @@ const App = () => {
     };
 
     loadAppFonts();
-    
-    // Start on language screen
-    setCurrentScreen('language');
   }, []);
 
   const toggleMenu = () => setIsMenuVisible(!isMenuVisible);
@@ -66,17 +61,12 @@ const App = () => {
       return <SharePage fontsLoaded={fontsLoaded} onBack={navigateBack} />;
     }
 
-    if (currentScreen === 'language') {
-      // Import and render the language screen
-      const LanguageScreen = require('./language').default;
-      return <LanguageScreen fontsLoaded={fontsLoaded} onBack={() => setCurrentScreen('main')} />;
-    }
-
-    const props = {
-      fontsLoaded,
+    const props = { 
+      fontsLoaded, 
       onNavigateToShare: navigateToShare,
       toggleMenu: toggleMenu, // Pass toggleMenu function
     };
+    
     switch (activeTab) {
       case 'home':
         return <Home {...props} />;
@@ -141,5 +131,4 @@ const styles = StyleSheet.create({
     color: '#333',
     fontFamily: getFontFamily('regular', false),
   },
-});
-
+}); 
