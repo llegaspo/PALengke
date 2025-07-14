@@ -187,7 +187,7 @@ export default function ExistingInventoryScreen() {
   const scrollbarTop = scrollbarMargin + rawTop;
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerBackVisible: false,
+      headerShown: false,
     });
   }, []);
 

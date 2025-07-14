@@ -107,7 +107,7 @@ const ExistingStoreOptions: React.FC<ExistingStoreOptionsProps> = ({ fontsLoaded
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerBackVisible: false,
+      headerShown: false,
     });
   }, []);
 

@@ -189,7 +189,7 @@ export default function ExistingInventoryScreen() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerBackVisible: false,
+      headerShown: false,
     });
   }, []);
 

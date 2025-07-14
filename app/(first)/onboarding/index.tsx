@@ -118,7 +118,7 @@ export default function OnboardingScreen() {
   };
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerBackVisible: false,
+      headerShown: false,
     });
   }, []);
 

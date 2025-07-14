@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, StyleSheet, Animated, Easing, Dimensions, LayoutAnimation, UIManager, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BlurView } from 'expo-blur';
 import { loadFonts, getFontFamily } from '../../../components/FontConfig';
+import { useNavigation } from '@react-navigation/native';
 
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -27,6 +28,7 @@ const t = {
 };
 
 export default function LanguageScreen() {
+  const navigation = useNavigation();
   const router = useRouter();
   const [selectedLang, setSelectedLang] = useState<'English' | 'Tagalog' | 'Bisaya' | null>(null);
   const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -71,6 +73,12 @@ export default function LanguageScreen() {
       confirmAnimation.setValue(0);
     }
   }, [selectedLang]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, []);
 
   const handleSelectLang = (lang: 'English' | 'Tagalog' | 'Bisaya') => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);

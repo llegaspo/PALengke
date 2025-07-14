@@ -115,7 +115,7 @@ export default function NewStoreOptions({ fontsLoaded = true }: NewStoreOptionsP
   };
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerBackVisible: false,
+      headerShown: false,
     });
   }, []);
 
