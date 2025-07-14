@@ -16,7 +16,7 @@ export default function Index() {
         setFontsLoaded(fontSuccess);
 
         // Check if user has already completed onboarding
-        const hasCompletedOnboarding = await AsyncStorage.getItem('onboardingCompleted');
+        const hasCompletedOnboarding = false;
         
         // Add a small delay to prevent flash
         setTimeout(() => {
