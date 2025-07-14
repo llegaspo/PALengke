@@ -10,9 +10,7 @@ import SaleNotification from '../../components/SaleNotification';
 
 interface ShopProps {
   fontsLoaded?: boolean;
-  onNavigateToShare?: () => void;
 }
-
 
 interface Product {
   id: string;
@@ -64,8 +62,6 @@ const Shop: React.FC<ShopProps> = ({ fontsLoaded = true }) => {
   if (showAnalytics) {
     return <Analytics onBack={() => setShowAnalytics(false)} />;
   }
-
-const Shop: React.FC<ShopProps> = ({ fontsLoaded = true, onNavigateToShare }) => {
 
   return (
     <SafeAreaView style={styles.container}>
@@ -221,4 +217,4 @@ const styles = StyleSheet.create({
     marginHorizontal: 7,
     justifyContent: 'center',
   },
-}); 
+});
