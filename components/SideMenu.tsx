@@ -9,6 +9,7 @@ interface SideMenuProps {
   fontsLoaded?: boolean;
   isDarkMode?: boolean;
   onToggleDarkMode?: () => void;
+  onNavigateToResources?: () => void;
 }
 
 const { width, height } = Dimensions.get('window');
@@ -19,11 +20,12 @@ const SideMenu: React.FC<SideMenuProps> = ({
   onClose, 
   fontsLoaded = true,
   isDarkMode = false,
-  onToggleDarkMode
+  onToggleDarkMode,
+  onNavigateToResources
 }) => {
   const slideAnimation = useRef(new Animated.Value(-MENU_WIDTH)).current;
   const overlayAnimation = useRef(new Animated.Value(0)).current;
-  const menuItemAnimations = useRef(new Array(3).fill(null).map(() => new Animated.Value(0))).current;
+  const menuItemAnimations = useRef(new Array(4).fill(null).map(() => new Animated.Value(0))).current;
 
   useEffect(() => {
     if (isVisible) {
@@ -82,6 +84,15 @@ const SideMenu: React.FC<SideMenuProps> = ({
       icon: 'analytics-outline',
       onPress: () => {
         console.log('Analytics pressed');
+        onClose();
+      }
+    },
+    {
+      id: 'resources',
+      title: 'Resources',
+      icon: 'library-outline',
+      onPress: () => {
+        onNavigateToResources?.();
         onClose();
       }
     },
@@ -168,10 +179,10 @@ const SideMenu: React.FC<SideMenuProps> = ({
           {/* Dark Mode Toggle */}
           <Animated.View
             style={{
-              opacity: menuItemAnimations[2], // Changed from 5 to 2
+              opacity: menuItemAnimations[3],
               transform: [
                 {
-                  translateX: menuItemAnimations[2].interpolate({ // Changed from 5 to 2
+                  translateX: menuItemAnimations[3].interpolate({
                     inputRange: [0, 1],
                     outputRange: [50, 0],
                   }),
