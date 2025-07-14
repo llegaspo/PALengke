@@ -13,6 +13,7 @@ export interface BusinessReport{
 }
 
 export const businessReportPDF = async (prop: BusinessReport) => {
+
  const htmlContent = `
     <html>
       <head>

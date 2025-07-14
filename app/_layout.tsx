@@ -101,8 +101,8 @@ export default function RootLayout(){
           headerLeft: () => null
         }}
       />
-      <Stack.Screen 
-        name='resources/index' 
+      <Stack.Screen
+        name='resources/index'
         options={{
           title: 'palengke',
           headerShown: true,
