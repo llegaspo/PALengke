@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, ScrollView, TouchableOpacity, StyleSheet, Text, Dimensions, Animated, Easing } from 'react-native';
+import { View, ScrollView, TouchableOpacity, StyleSheet, Text, Dimensions, Animated, Easing, Platform, BackHandler } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import EarningsCard from './EarningsCard';
@@ -65,6 +65,19 @@ const Analytics: React.FC<AnalyticsProps> = ({ onBack }) => {
     });
   }, []);
 
+  useEffect(() => {
+    // Handle Android back button
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (onBack) {
+        onBack();
+        return true; // Prevent default behavior
+      }
+      return false; // Allow default behavior
+    });
+
+    return () => backHandler.remove();
+  }, [onBack]);
+
   return (
     <View style={styles.container}>
       <ScrollView 
@@ -83,7 +96,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ onBack }) => {
                 {
                   translateY: headerAnimation.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [-20, 0],
+                    outputRange: [-30, 0],
                   }),
                 },
               ],
@@ -95,29 +108,10 @@ const Analytics: React.FC<AnalyticsProps> = ({ onBack }) => {
             onPress={onBack || (() => router.push('/shop'))}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={24} color="#4D0045" />
+            <Ionicons name="arrow-back" size={20} color="#64748B" />
           </TouchableOpacity>
-        </Animated.View>
-
-        {/* Title */}
-        <Animated.View 
-          style={[
-            styles.titleContainer,
-            {
-              opacity: titleAnimation,
-              transform: [
-                {
-                  translateY: titleAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [15, 0],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <Text style={styles.analyticsTitle}>Analytics</Text>
-          <Text style={styles.analyticsSubtitle}>Business Performance Overview</Text>
+          <Text style={styles.headerTitle}>Analytics</Text>
+          <View style={styles.headerSpacer} />
         </Animated.View>
 
         {/* Earnings Card */}
@@ -228,21 +222,34 @@ const Analytics: React.FC<AnalyticsProps> = ({ onBack }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F8FAFC',
   },
   scrollContainer: {
     flex: 1,
   },
   contentContainer: {
     paddingBottom: 40,
-    paddingTop: 20,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 30,
-    paddingBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 60 : 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   backButton: {
     width: 40,
@@ -252,21 +259,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#F1F5F9',
   },
-  titleContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  analyticsTitle: {
-    fontSize: 32,
-    color: '#4D0045',
-    fontWeight: 'bold',
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 22,
+    color: '#1E293B',
+    fontWeight: '600',
     fontFamily: getFontFamily('bold', true),
-    marginBottom: 5,
   },
-  analyticsSubtitle: {
-    fontSize: 16,
-    color: '#666',
-    fontFamily: getFontFamily('regular', true),
+  headerSpacer: {
+    width: 40,
   },
   earningsCardWrapper: {
     paddingHorizontal: 20,

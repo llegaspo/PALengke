@@ -9,9 +9,10 @@ interface HomeProps {
   fontsLoaded?: boolean;
   onNavigateToShare?: () => void;
   onNavigateToResources?: () => void;
+  onNavigateToAnalytics?: () => void;
 }
 
-const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, onNavigateToResources }) => {
+const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, onNavigateToResources, onNavigateToAnalytics }) => {
   const [isSideMenuVisible, setSideMenuVisible] = useState(false);
 
   // Animation refs
@@ -120,8 +121,8 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, onNa
           </Text>
         </Animated.View>
 
-        {/* Modern Sales Dashboard */}
-        <Animated.View
+                {/* Modern Sales Dashboard */}
+        <Animated.View 
           style={[
             styles.dashboardContainer,
             {
@@ -143,12 +144,13 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, onNa
             },
           ]}
         >
-          <LinearGradient
-            colors={['#4D0045', '#7B2D6B', '#9B4A8A']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.salesCard}
-          >
+          <TouchableOpacity onPress={onNavigateToAnalytics} activeOpacity={0.8}>
+            <LinearGradient
+              colors={['#4D0045', '#7B2D6B', '#9B4A8A']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.salesCard}
+            >
             <View style={styles.salesHeader}>
               <View style={styles.salesIconContainer}>
                 <Ionicons name="trending-up" size={24} color="#FFFFFF" />
@@ -172,6 +174,7 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, onNa
               </View>
             </View>
           </LinearGradient>
+          </TouchableOpacity>
         </Animated.View>
 
         {/* Modern Metrics Cards */}
@@ -191,7 +194,7 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, onNa
             },
           ]}
         >
-          <View style={styles.metricCard}>
+          <TouchableOpacity style={styles.metricCard} onPress={onNavigateToAnalytics} activeOpacity={0.8}>
             <View style={styles.metricHeader}>
               <Ionicons name="cash" size={20} color="#4D0045" />
               <Text style={[styles.metricLabel, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>
@@ -204,9 +207,9 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, onNa
             <View style={styles.metricProgress}>
               <View style={[styles.metricProgressBar, { width: '65%' }]} />
             </View>
-          </View>
+          </TouchableOpacity>
 
-          <View style={styles.metricCard}>
+          <TouchableOpacity style={styles.metricCard} onPress={onNavigateToAnalytics} activeOpacity={0.8}>
             <View style={styles.metricHeader}>
               <Ionicons name="wallet" size={20} color="#4D0045" />
               <Text style={[styles.metricLabel, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>
@@ -219,7 +222,7 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, onNa
             <View style={styles.metricProgress}>
               <View style={[styles.metricProgressBar, { width: '45%' }]} />
             </View>
-          </View>
+          </TouchableOpacity>
         </Animated.View>
 
         {/* Today's Story Section */}
@@ -360,6 +363,8 @@ const Home: React.FC<HomeProps> = ({ fontsLoaded = true, onNavigateToShare, onNa
         <SideMenu
           isVisible={isSideMenuVisible}
           onClose={() => setSideMenuVisible(false)}
+          onNavigateToResources={onNavigateToResources}
+          onNavigateToAnalytics={onNavigateToAnalytics}
         />
       )}
     </View>

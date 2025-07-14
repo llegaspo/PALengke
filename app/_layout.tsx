@@ -12,6 +12,7 @@ export default function RootLayout(){
           fontWeight: 'bold',
         },
         headerLeft: () => null, // Remove back button
+        title: 'palengke', // Fixed header title
       }}>
     </Stack>
   )

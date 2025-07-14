@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "PALengke",
-    "scheme": "PAlengke",
+    "scheme": "palengke",
     "slug": "PALengke",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -24,7 +24,24 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.palengke.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "palengke.app"
+            },
+            {
+              "scheme": "palengke"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

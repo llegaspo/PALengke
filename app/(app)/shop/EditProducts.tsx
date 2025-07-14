@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Dimensions, TextInput, Platform, LayoutAnimation, UIManager } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Dimensions, TextInput, Platform, LayoutAnimation, UIManager, BackHandler } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { loadFonts, getFontFamily } from '../../../components/FontConfig';
@@ -32,7 +32,11 @@ const initialProducts: Product[] = [
   },
 ];
 
-const EditProducts = () => {
+interface EditProductsProps {
+  onBack?: () => void;
+}
+
+const EditProducts: React.FC<EditProductsProps> = ({ onBack }) => {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [editingProduct, setEditingProduct] = useState<null | (Product & { pcsStr: string; costStr: string; priceStr: string })>(null);
@@ -49,6 +53,19 @@ const EditProducts = () => {
     };
     loadAppFonts();
   }, []);
+
+  useEffect(() => {
+    // Handle Android back button
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (onBack) {
+        onBack();
+        return true; // Prevent default behavior
+      }
+      return false; // Allow default behavior
+    });
+
+    return () => backHandler.remove();
+  }, [onBack]);
 
   const handleEdit = (product: Product) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
@@ -135,7 +152,7 @@ const EditProducts = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.headerRow}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backArrow}>
+        <TouchableOpacity onPress={onBack || (() => router.back())} style={styles.backArrow}>
           <Text style={styles.backArrowText}>{'\u2190'}</Text>
         </TouchableOpacity>
         <Text style={[styles.title, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>Edit</Text>
@@ -337,10 +354,10 @@ const EditProducts = () => {
         </View>
       </View>
       <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.cancelActionBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.cancelActionBtn} onPress={onBack || (() => router.back())}>
           <Text style={styles.cancelActionText}>Cancel</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.confirmBtn} onPress={() => router.push('/main')}>
+        <TouchableOpacity style={styles.confirmBtn} onPress={onBack || (() => router.back())}>
           <Text style={styles.confirmBtnText}>Confirm</Text>
         </TouchableOpacity>
       </View>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Animated, Easing, Share, Alert, TextInput, TouchableWithoutFeedback, Keyboard, Platform, Clipboard, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Animated, Easing, Share, Alert, TextInput, TouchableWithoutFeedback, Keyboard, Platform, Clipboard, SafeAreaView, BackHandler } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getFontFamily } from '../../../components/FontConfig';
@@ -62,6 +62,19 @@ const SharePage: React.FC<SharePageProps> = ({ fontsLoaded = true, onBack }) => 
       }).start();
     });
   }, []);
+
+  useEffect(() => {
+    // Handle Android back button
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (onBack) {
+        onBack();
+        return true; // Prevent default behavior
+      }
+      return false; // Allow default behavior
+    });
+
+    return () => backHandler.remove();
+  }, [onBack]);
 
   const handleRegenerate = async () => {
     setIsRegenerating(true);

@@ -15,6 +15,8 @@ const { width } = Dimensions.get('window');
 interface ShopProps {
   fontsLoaded?: boolean;
   onNavigateToResources?: () => void;
+  onNavigateToAnalytics?: () => void;
+  onNavigateToEditProducts?: () => void;
 }
 
 interface Product {
@@ -43,7 +45,7 @@ interface StackIndicatorData {
   totalAmount: number;
 }
 
-const Shop: React.FC<ShopProps> = ({ fontsLoaded = true, onNavigateToResources }) => {
+const Shop: React.FC<ShopProps> = ({ fontsLoaded = true, onNavigateToResources, onNavigateToAnalytics, onNavigateToEditProducts }) => {
   const router = useRouter();
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [isSideMenuVisible, setSideMenuVisible] = useState(false);
@@ -285,6 +287,7 @@ const Shop: React.FC<ShopProps> = ({ fontsLoaded = true, onNavigateToResources }
         onClose={() => setSideMenuVisible(false)}
         fontsLoaded={fontsLoaded}
         onNavigateToResources={onNavigateToResources}
+        onNavigateToAnalytics={onNavigateToAnalytics}
       />
 
       {/* Header with Menu Icon */}
@@ -310,7 +313,7 @@ const Shop: React.FC<ShopProps> = ({ fontsLoaded = true, onNavigateToResources }
               <Text style={[styles.title, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>Products</Text>
               <Text style={[styles.subtitle, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>One tap counts as one sale.</Text>
             </View>
-            <TouchableOpacity style={styles.editBtn} onPress={() => router.push('/shop/EditProducts')}>
+            <TouchableOpacity style={styles.editBtn} onPress={onNavigateToEditProducts || (() => router.push('/shop/EditProducts'))}>
               <View style={styles.editBtnCircle}>
                 <Ionicons name="pencil-outline" size={18} color="#4A154B" />
               </View>

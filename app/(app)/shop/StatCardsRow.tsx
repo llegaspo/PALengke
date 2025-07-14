@@ -76,16 +76,12 @@ const StatCardsRow: React.FC<StatCardsRowProps> = ({ totalSpent, profitToday, pr
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 8, // Left and right margins are now equal and consistent
+    paddingHorizontal: 20,
     marginBottom: 20,
     gap: 15,
   },
   cardContainer: {
-    flexBasis: '48%',
-    minWidth: 220,
-    flexGrow: 1,
-    marginBottom: 15,
+    flex: 1,
   },
   card: {
     backgroundColor: '#FFFFFF',

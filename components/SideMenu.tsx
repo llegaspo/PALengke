@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Animated, Dimensions, Switch, Easing } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Animated, Dimensions, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getFontFamily } from './FontConfig';
 
@@ -7,9 +7,8 @@ interface SideMenuProps {
   isVisible: boolean;
   onClose: () => void;
   fontsLoaded?: boolean;
-  isDarkMode?: boolean;
-  onToggleDarkMode?: () => void;
   onNavigateToResources?: () => void;
+  onNavigateToAnalytics?: () => void;
 }
 
 const { width, height } = Dimensions.get('window');
@@ -19,13 +18,12 @@ const SideMenu: React.FC<SideMenuProps> = ({
   isVisible, 
   onClose, 
   fontsLoaded = true,
-  isDarkMode = false,
-  onToggleDarkMode,
-  onNavigateToResources
+  onNavigateToResources,
+  onNavigateToAnalytics
 }) => {
   const slideAnimation = useRef(new Animated.Value(-MENU_WIDTH)).current;
   const overlayAnimation = useRef(new Animated.Value(0)).current;
-  const menuItemAnimations = useRef(new Array(4).fill(null).map(() => new Animated.Value(0))).current;
+  const menuItemAnimations = useRef(new Array(2).fill(null).map(() => new Animated.Value(0))).current;
 
   useEffect(() => {
     if (isVisible) {
@@ -83,7 +81,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
       title: 'Analytics',
       icon: 'analytics-outline',
       onPress: () => {
-        console.log('Analytics pressed');
+        onNavigateToAnalytics?.();
         onClose();
       }
     },
@@ -93,15 +91,6 @@ const SideMenu: React.FC<SideMenuProps> = ({
       icon: 'library-outline',
       onPress: () => {
         onNavigateToResources?.();
-        onClose();
-      }
-    },
-    {
-      id: 'notifications',
-      title: 'Notifications',
-      icon: 'notifications-outline',
-      onPress: () => {
-        console.log('Notifications pressed');
         onClose();
       }
     },
@@ -176,36 +165,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
             </Animated.View>
           ))}
 
-          {/* Dark Mode Toggle */}
-          <Animated.View
-            style={{
-              opacity: menuItemAnimations[3],
-              transform: [
-                {
-                  translateX: menuItemAnimations[3].interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [50, 0],
-                  }),
-                },
-              ],
-            }}
-          >
-            <View style={styles.darkModeContainer}>
-              <View style={styles.darkModeItem}>
-                <Ionicons name="moon-outline" size={22} color="#4D0045" />
-                <Text style={[styles.menuItemText, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>
-                  Dark Mode
-                </Text>
-              </View>
-              <Switch
-                value={isDarkMode}
-                onValueChange={onToggleDarkMode}
-                trackColor={{ false: '#E5E5EA', true: '#4D0045' }}
-                thumbColor={isDarkMode ? '#FFFFFF' : '#FFFFFF'}
-                ios_backgroundColor="#E5E5EA"
-              />
-            </View>
-          </Animated.View>
+
         </View>
 
         {/* Footer */}
@@ -291,21 +251,7 @@ const styles = StyleSheet.create({
     color: '#333',
     marginLeft: 16,
   },
-  darkModeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
-    marginTop: 10,
-  },
-  darkModeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
+
   footer: {
     paddingHorizontal: 20,
     paddingVertical: 20,

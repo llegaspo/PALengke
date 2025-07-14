@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Dimensions
 import { BlurView } from 'expo-blur';
 import { useRouter, useNavigation } from 'expo-router';
 import { loadFonts, getFontFamily } from '../../../components/FontConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -408,7 +409,10 @@ export default function ExistingInventoryScreen() {
         </View>
         <TouchableOpacity
           style={[styles.confirmBtn, { marginHorizontal: 20 }]}
-          onPress={() => router.replace('(app)/main')}
+          onPress={async () => {
+            await AsyncStorage.setItem('onboardingCompleted', 'true');
+            router.replace('/(app)/main');
+          }}
         >
           <Text style={styles.confirmBtnText}>Confirm</Text>
         </TouchableOpacity>
