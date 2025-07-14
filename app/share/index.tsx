@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Animated, Easing, Share, Alert, TextInput, TouchableWithoutFeedback, Keyboard, Platform, Clipboard } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Animated, Easing, Share, Alert, TextInput, TouchableWithoutFeedback, Keyboard, Platform, Clipboard, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getFontFamily } from '../../components/FontConfig';
@@ -142,7 +142,7 @@ const SharePage: React.FC<SharePageProps> = ({ fontsLoaded = true, onBack }) => 
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <Animated.View
         style={[
@@ -290,7 +290,7 @@ const SharePage: React.FC<SharePageProps> = ({ fontsLoaded = true, onBack }) => 
           </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 20,
+    paddingTop: Platform.OS === 'ios' ? 10 : 20,
     paddingHorizontal: 20,
     paddingBottom: 20,
     backgroundColor: '#FFFFFF',
@@ -315,8 +315,8 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOpacity: Platform.OS === 'ios' ? 0.1 : 0.05,
+    shadowRadius: Platform.OS === 'ios' ? 6 : 4,
     elevation: 2,
   },
   backButton: {
@@ -358,10 +358,10 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: Platform.OS === 'ios' ? 8 : 8,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
+    shadowOpacity: Platform.OS === 'ios' ? 0.12 : 0.1,
+    shadowRadius: Platform.OS === 'ios' ? 28 : 24,
     elevation: 8,
   },
   cardHeader: {
@@ -450,10 +450,10 @@ const styles = StyleSheet.create({
     shadowColor: '#8B5CF6',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: Platform.OS === 'ios' ? 6 : 4,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowOpacity: Platform.OS === 'ios' ? 0.2 : 0.15,
+    shadowRadius: Platform.OS === 'ios' ? 12 : 8,
     elevation: 4,
   },
   regenerateButtonDisabled: {
@@ -468,10 +468,10 @@ const styles = StyleSheet.create({
     shadowColor: '#8B5CF6',
     shadowOffset: {
       width: 0,
-      height: 6,
+      height: Platform.OS === 'ios' ? 8 : 6,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
+    shadowOpacity: Platform.OS === 'ios' ? 0.3 : 0.25,
+    shadowRadius: Platform.OS === 'ios' ? 16 : 12,
     elevation: 6,
   },
   shareButtonGradient: {

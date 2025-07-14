@@ -2,12 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDJHi7IjS43toBfeoE-FBdlF4UP2IPSRXY",
-  authDomain: "palengke-7eb40.firebaseapp.com",
-  projectId: "palengke-7eb40",
-  storageBucket: "palengke-7eb40.firebasestorage.app",
-  messagingSenderId: "55145367303",
-  appId: "1:55145367303:web:7715c55d3a594ee59427a2"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
 const app = initializeApp(firebaseConfig);

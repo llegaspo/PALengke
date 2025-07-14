@@ -102,15 +102,12 @@ export default function VendorsScreen() {
 
   const renderStore = ({ item, index }: { item: typeof storeOptions[0], index: number }) => {
     const isSelected = selectedStore === item.name;
-    const isLastInRow = (index + 1) % 3 === 0;
     
     return (
       <TouchableOpacity
-        key={item.name}
         style={[
           styles.square,
           isSelected && styles.selectedSquare,
-          !isLastInRow && { marginRight: 8 },
         ]}
         onPress={() => handleStoreSelect(item.name)}
         activeOpacity={0.7}
@@ -175,8 +172,9 @@ export default function VendorsScreen() {
             keyExtractor={item => item.name}
             numColumns={3}
             contentContainerStyle={styles.storeOptions}
-            columnWrapperStyle={{ marginBottom: 12 }}
+            columnWrapperStyle={{ justifyContent: 'flex-start' }}
             scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
           />
         </Animated.View>
 
@@ -197,10 +195,7 @@ export default function VendorsScreen() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F8F9FA',
-    maxWidth: 390,
     flex: 1,
-    minHeight: '100%',
-    alignSelf: 'center',
     padding: 24,
     paddingTop: 40,
   },
@@ -244,11 +239,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   storeOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'flex-start',
     marginBottom: 32,
-    padding: 0,
+    paddingHorizontal: 12,
   },
   square: {
     backgroundColor: '#FFFFFF',
@@ -258,7 +250,8 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 12,
     marginBottom: 16,
-    width: (width - 72) / 3.1,
+    marginRight: 12,
+    width: (width - 96) / 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
