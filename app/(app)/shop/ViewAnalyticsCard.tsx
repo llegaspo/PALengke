@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { getFontFamily } from '../../../components/FontConfig';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
 interface ViewAnalyticsCardProps {
   onPress: () => void;
@@ -14,63 +15,81 @@ const ViewAnalyticsCard: React.FC<ViewAnalyticsCardProps> = ({ onPress, fontsLoa
   const CardWrapper = gradient
     ? ({ children }: { children: React.ReactNode }) => (
         <LinearGradient
-          colors={["#6B026F", "#9920A6", "#BF5DC8", "#CA9ECF"]}
+          colors={["#4A154B", "#5A1F5B", "#6A2A6B", "#7A357B"]}
           start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={styles.card}
         >
           {children}
         </LinearGradient>
       )
     : ({ children }: { children: React.ReactNode }) => (
-        <View style={[styles.card, { backgroundColor: '#6D28D9' }]}>{children}</View>
+        <View style={[styles.card, { backgroundColor: '#4A154B' }]}>{children}</View>
       );
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={{ marginHorizontal: 0 }}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.85} style={styles.container}>
       <CardWrapper>
-        <View>
-          <Text style={[styles.title, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>View Analytics</Text>
-          <Text style={[styles.subtitle, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>{subtitle}</Text>
+        <View style={styles.contentContainer}>
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>View Analytics</Text>
+            <Text style={[styles.subtitle, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>{subtitle}</Text>
+          </View>
+          <View style={styles.iconContainer}>
+            <Ionicons name="analytics-outline" size={28} color="rgba(255,255,255,0.9)" />
+          </View>
         </View>
-        <Text style={styles.arrow}>→</Text>
       </CardWrapper>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 4,
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 25,
-    padding: 28,
-    marginHorizontal: 9,
+    borderRadius: 24,
+    padding: 24,
     justifyContent: 'space-between',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowColor: '#4A154B',
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  contentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  textContainer: {
+    flex: 1,
   },
   title: {
     color: '#fff',
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+    marginBottom: 4,
   },
   subtitle: {
-    color: '#fff',
-    fontSize: 16,
-    opacity: 0.8,
-    marginTop: 2,
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 15,
+    letterSpacing: -0.2,
+    lineHeight: 20,
   },
-  arrow: {
-    color: '#fff',
-    fontSize: 45,
-    fontWeight: 'bold',
+  iconContainer: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 20,
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 16,
   },
 });
 

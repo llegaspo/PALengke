@@ -1,7 +1,8 @@
-import React, { useState, useLayoutEffect} from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Dimensions, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useNavigation } from 'expo-router';
+import React, { useState, useEffect, useRef, useLayoutEffect} from 'react';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Dimensions, FlatList, KeyboardAvoidingView, Platform, Animated, Easing } from 'react-native';
+import { useRouter } from 'expo-router';
+import { getFontFamily } from '../../../components/FontConfig';
 
 const { width, height } = Dimensions.get('window');
 
@@ -13,14 +14,46 @@ const storeOptions = [
   { name: 'butcher', image: require('../../../assets/png/butchery.png') },
 ];
 
-export default function NewStoreOptions() {
+interface NewStoreOptionsProps {
+  fontsLoaded?: boolean;
+}
+export default function NewStoreOptions({ fontsLoaded = true }: NewStoreOptionsProps) {
   const navigation = useNavigation()
+
   const [storeName, setStoreName] = useState('');
   const [budget, setBudget] = useState('');
   const [location, setLocation] = useState('');
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
   const [touched, setTouched] = useState<{storeName: boolean, budget: boolean, location: boolean, store: boolean}>({storeName: false, budget: false, location: false, store: false});
   const router = useRouter();
+
+  // Animation refs
+  const titleAnimation = useRef(new Animated.Value(0)).current;
+  const formAnimation = useRef(new Animated.Value(0)).current;
+  const storeOptionsAnimation = useRef(new Animated.Value(0)).current;
+  const budgetAnimation = useRef(new Animated.Value(0)).current;
+  const buttonAnimation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Stagger animations for smooth entrance
+    const animations = [
+      { animation: titleAnimation, delay: 0 },
+      { animation: formAnimation, delay: 200 },
+      { animation: storeOptionsAnimation, delay: 400 },
+      { animation: budgetAnimation, delay: 600 },
+      { animation: buttonAnimation, delay: 800 },
+    ];
+
+    animations.forEach(({ animation, delay }) => {
+      Animated.timing(animation, {
+        toValue: 1,
+        duration: 600,
+        delay,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    });
+  }, []);
 
   const isStoreNameValid = storeName.trim().length > 0;
   const isBudgetValid = budget.trim().length > 0;
@@ -71,6 +104,7 @@ export default function NewStoreOptions() {
         <Text
           style={[
             styles.storeText,
+            { fontFamily: getFontFamily(isSelected ? 'bold' : 'medium', fontsLoaded) },
             isSelected && styles.selectedText,
           ]}
         >
@@ -88,77 +122,111 @@ export default function NewStoreOptions() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, overflow: 'visible' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.container}>
-        <Text style={styles.title}>Let's start <Text style={styles.titleAccent}>your</Text> business!</Text>
-        <Text style={styles.label}>Store Name</Text>
-        <TextInput
-          style={[styles.input, !isStoreNameValid && touched.storeName && styles.inputError]}
-          value={storeName}
-          onChangeText={text => { setStoreName(text); if (!touched.storeName) setTouched(t => ({...t, storeName: true})); }}
-          placeholder="Enter store name"
-          placeholderTextColor="#666"
-        />
-        <Text style={styles.label}>What store are you planning to start?</Text>
-        <View style={styles.optionsWrapper}>
-          <FlatList
-            key={'store-options-3'}
-            data={storeOptions}
-            renderItem={renderStore}
-            keyExtractor={item => item.name}
-            numColumns={3}
-            contentContainerStyle={styles.storeOptions}
-            columnWrapperStyle={{ justifyContent: 'flex-start' }}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
+        <Animated.View style={{
+          opacity: titleAnimation,
+          transform: [{ translateY: titleAnimation.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }]
+        }}>
+          <Text style={[styles.title, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>
+            Let's start <Text style={[styles.titleAccent, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>your</Text> business!
+          </Text>
+        </Animated.View>
+
+        <Animated.View style={{
+          opacity: formAnimation,
+          transform: [{ translateY: formAnimation.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }]
+        }}>
+          <Text style={[styles.label, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>Store Name</Text>
+          <TextInput
+            style={[styles.input, { fontFamily: getFontFamily('regular', fontsLoaded) }, !isStoreNameValid && touched.storeName && styles.inputError]}
+            value={storeName}
+            onChangeText={text => { setStoreName(text); if (!touched.storeName) setTouched(t => ({...t, storeName: true})); }}
+            placeholder="Enter store name"
+            placeholderTextColor="#666"
           />
-          {!isStoreValid && touched.store && (
-            <Text style={styles.errorText}>Please select a store type.</Text>
-          )}
-        </View>
-        <Text style={styles.label}>Budget</Text>
-        <TextInput
-          style={[styles.input, !isBudgetValid && touched.budget && styles.inputError]}
-          value={budget}
-          onChangeText={text => { setBudget(text); if (!touched.budget) setTouched(t => ({...t, budget: true})); }}
-          keyboardType="numeric"
-          placeholder="Enter budget"
-          placeholderTextColor="#666"
-        />
-        <Text style={styles.label}>Location</Text>
-        <TextInput
-          style={[styles.input, !isLocationValid && touched.location && styles.inputError]}
-          value={location}
-          onChangeText={text => { setLocation(text); if (!touched.location) setTouched(t => ({...t, location: true})); }}
-          placeholder="Enter location"
-          placeholderTextColor="#666"
-        />
-        <TouchableOpacity
-          style={[styles.confirmButton, !isFormValid && styles.confirmButtonDisabled, { marginTop: 24 }]}
-          onPress={handleConfirm}
-          activeOpacity={isFormValid ? 0.7 : 1}
-          disabled={!isFormValid}
-        >
-          <Text style={styles.confirmButtonText}>Confirm</Text>
-        </TouchableOpacity>
+        </Animated.View>
+
+        <Animated.View style={{
+          opacity: storeOptionsAnimation,
+          transform: [{ translateY: storeOptionsAnimation.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }]
+        }}>
+          <Text style={[styles.label, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>What store are you planning to start?</Text>
+          <View style={styles.optionsWrapper}>
+            <FlatList
+              key={'store-options-3'}
+              data={storeOptions}
+              renderItem={renderStore}
+              keyExtractor={item => item.name}
+              numColumns={3}
+              contentContainerStyle={styles.storeOptions}
+              columnWrapperStyle={{ justifyContent: 'flex-start' }}
+              scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
+              style={{ overflow: 'visible' }}
+            />
+            {!isStoreValid && touched.store && (
+              <Text style={[styles.errorText, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>Please select a store type.</Text>
+            )}
+          </View>
+        </Animated.View>
+
+        <Animated.View style={{
+          opacity: budgetAnimation,
+          transform: [{ translateY: budgetAnimation.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }]
+        }}>
+          <Text style={[styles.label, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>Budget</Text>
+          <TextInput
+            style={[styles.input, { fontFamily: getFontFamily('regular', fontsLoaded) }, !isBudgetValid && touched.budget && styles.inputError]}
+            value={budget}
+            onChangeText={text => { setBudget(text); if (!touched.budget) setTouched(t => ({...t, budget: true})); }}
+            keyboardType="numeric"
+            placeholder="Enter budget"
+            placeholderTextColor="#666"
+          />
+          <Text style={[styles.label, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>Location</Text>
+          <TextInput
+            style={[styles.input, { fontFamily: getFontFamily('regular', fontsLoaded) }, !isLocationValid && touched.location && styles.inputError]}
+            value={location}
+            onChangeText={text => { setLocation(text); if (!touched.location) setTouched(t => ({...t, location: true})); }}
+            placeholder="Enter location"
+            placeholderTextColor="#666"
+          />
+        </Animated.View>
+
+        <Animated.View style={{
+          opacity: buttonAnimation,
+          transform: [{ translateY: buttonAnimation.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }]
+        }}>
+          <TouchableOpacity
+            style={[styles.confirmButton, !isFormValid && styles.confirmButtonDisabled, { marginTop: 24 }]}
+            onPress={handleConfirm}
+            activeOpacity={isFormValid ? 0.7 : 1}
+            disabled={!isFormValid}
+          >
+            <Text style={[styles.confirmButtonText, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>Confirm</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F8F9FA',
     flex: 1,
-    paddingTop: 18,
+    paddingTop: 60,
     paddingBottom: 100, // Slightly less space for confirm button
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
+    overflow: 'visible',
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: '800',
     backgroundColor: 'transparent',
     color: '#69006c',
     marginBottom: 18,
@@ -167,7 +235,7 @@ const styles = StyleSheet.create({
   },
   titleAccent: {
     color: '#A259C6',
-    fontWeight: 'bold',
+    fontWeight: '800',
   },
   label: {
     fontSize: 16,
@@ -197,6 +265,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
+    overflow: 'visible',
     // Remove width to let container padding control the edge
   },
   optionsWrapper: {
@@ -204,6 +273,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
     marginBottom: 0,
+    marginTop: 12,
+    overflow: 'visible',
   },
   square: {
     backgroundColor: '#FFFFFF',
@@ -212,9 +283,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     paddingHorizontal: 8,
-    marginBottom: 16,
+    marginBottom: 20,
     marginRight: 12,
-    width: (width - 2 * 24 - 2 * 12) / 3,
+    width: (width - 2 * 20 - 2 * 12) / 3,
     height: Math.min(120, height * 0.16),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -224,6 +295,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1 }],
     borderWidth: 2,
     borderColor: 'transparent',
+    overflow: 'visible',
   },
   selectedSquare: {
     borderColor: '#69006c',
