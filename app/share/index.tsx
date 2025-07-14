@@ -64,6 +64,8 @@ const SharePage: React.FC<SharePageProps> = ({ fontsLoaded = true, onBack }) => 
 
   const handleRegenerate = async () => {
     setIsRegenerating(true);
+
+    try{
     const newShare = await ShareStoreAI({storeName: 'Nanay Rita', location: 'Lahug'})
 
     // Animate regenerate button
@@ -81,6 +83,13 @@ const SharePage: React.FC<SharePageProps> = ({ fontsLoaded = true, onBack }) => 
     ]).start();
 
     setContent(newShare);
+    } catch(e){
+      console.error('Error during regeneration', e);
+      Alert.alert('Error', 'Something went wrong while generating new message');
+    } finally {
+      setIsRegenerating(false);
+    }
+
   }
 
   const handleShare = async () => {
