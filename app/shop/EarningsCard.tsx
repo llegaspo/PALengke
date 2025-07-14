@@ -1,6 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { getFontFamily } from '../../components/FontConfig';
+
+const { width } = Dimensions.get('window');
 
 interface BarData {
   value: number;
@@ -12,68 +15,195 @@ interface EarningsCardProps {
 }
 
 const EarningsCard: React.FC<EarningsCardProps> = ({ bars }) => {
+  const maxValue = Math.max(...bars.map(bar => bar.value));
+  const barWidth = (width - 120) / bars.length - 8; // Responsive bar width
+
   return (
-    <View style={styles.card}>
-      <Text style={styles.title}>Earnings</Text>
-      <View style={styles.barChartRow}>
-        {bars.map((bar, i) => (
-          <View key={i} style={styles.barCol}>
-            <View style={[styles.bar, { height: bar.value, backgroundColor: bar.color }]} />
-            <Text style={styles.barLabel}>Date</Text>
+    <View style={styles.cardContainer}>
+      <LinearGradient
+        colors={['#ffffff', '#f8f9fa']}
+        style={styles.card}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>Earnings Overview</Text>
+          <Text style={styles.subtitle}>Weekly Performance</Text>
+        </View>
+        
+        <View style={styles.chartContainer}>
+          <View style={styles.barChartRow}>
+            {bars.map((bar, i) => {
+              const normalizedHeight = (bar.value / maxValue) * 100;
+              return (
+                <View key={i} style={[styles.barCol, { width: barWidth }]}>
+                  <View style={styles.barContainer}>
+                    <LinearGradient
+                      colors={[bar.color, `${bar.color}80`]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 0, y: 1 }}
+                      style={[
+                        styles.bar, 
+                        { 
+                          height: Math.max(normalizedHeight, 8),
+                          minHeight: 8,
+                        }
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.barLabel}>
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i] || `D${i + 1}`}
+                  </Text>
+                  <Text style={styles.barValue}>₱{bar.value}</Text>
+                </View>
+              );
+            })}
           </View>
-        ))}
-      </View>
+        </View>
+
+        {/* Summary stats */}
+        <View style={styles.summaryContainer}>
+          <LinearGradient
+            colors={['#4A154B', '#5A1F5B']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.summaryGradient}
+          >
+            <View style={styles.summaryRow}>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Average</Text>
+                <Text style={styles.summaryValue}>₱{Math.round(bars.reduce((a, b) => a + b.value, 0) / bars.length)}</Text>
+              </View>
+              <View style={styles.summaryDivider} />
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryLabel}>Best Day</Text>
+                <Text style={styles.summaryValue}>₱{maxValue}</Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
+      </LinearGradient>
     </View>
   );
 };
 
-const CARD_RADIUS = 22;
 const styles = StyleSheet.create({
+  cardContainer: {
+    marginBottom: 20,
+    shadowColor: '#4A154B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: CARD_RADIUS,
-    marginBottom: 26,
-    paddingVertical: 28,
-    paddingHorizontal: 22,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 6,
-    elevation: 4,
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  header: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
   },
   title: {
-    fontSize: 26,
-    color: '#720877',
-    fontWeight: 'bold',
+    fontSize: width < 380 ? 24 : 28,
+    color: '#4A154B',
+    fontWeight: '700',
     fontFamily: getFontFamily('bold', true),
-    marginBottom: 18,
-    textAlign: 'left',
-    letterSpacing: 0.2,
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#6A2A6B',
+    fontFamily: getFontFamily('medium', true),
+    letterSpacing: -0.2,
+    opacity: 0.7,
+  },
+  chartContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   barChartRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    marginTop: 8,
-    marginBottom: 8,
     height: 120,
-    paddingHorizontal: 2,
+    paddingHorizontal: 8,
+    marginBottom: 8,
   },
   barCol: {
     alignItems: 'center',
-    width: 48,
+    justifyContent: 'flex-end',
+  },
+  barContainer: {
+    height: 100,
+    justifyContent: 'flex-end',
+    marginBottom: 8,
   },
   bar: {
-    width: 38,
-    borderRadius: 14,
+    width: '80%',
+    borderRadius: 8,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    shadowColor: '#4A154B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   barLabel: {
+    fontSize: 11,
+    color: '#4A154B',
+    fontFamily: getFontFamily('medium', true),
+    marginBottom: 2,
+    opacity: 0.8,
+    letterSpacing: -0.1,
+  },
+  barValue: {
     fontSize: 10,
-    color: '#6B026F',
-    marginTop: 4,
-    fontFamily: getFontFamily('regular', true),
-    opacity: 0.7,
-    letterSpacing: 0.1,
+    color: '#6A2A6B',
+    fontFamily: getFontFamily('bold', true),
+    opacity: 0.6,
+    letterSpacing: -0.1,
+  },
+  summaryContainer: {
+    marginTop: 8,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  summaryGradient: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  summaryItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  summaryDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    marginHorizontal: 16,
+  },
+  summaryLabel: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
+    fontFamily: getFontFamily('medium', true),
+    marginBottom: 4,
+    letterSpacing: -0.1,
+  },
+  summaryValue: {
+    fontSize: 16,
+    color: '#fff',
+    fontFamily: getFontFamily('bold', true),
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
 });
 

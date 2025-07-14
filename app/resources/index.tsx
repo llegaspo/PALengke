@@ -33,9 +33,10 @@ interface Article {
 
 interface ResourcesProps {
   fontsLoaded?: boolean;
+  onBack?: () => void;
 }
 
-const Resources: React.FC<ResourcesProps> = ({ fontsLoaded = true }) => {
+const Resources: React.FC<ResourcesProps> = ({ fontsLoaded = true, onBack }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   
@@ -186,12 +187,19 @@ const Resources: React.FC<ResourcesProps> = ({ fontsLoaded = true }) => {
           },
         ]}
       >
-        <Text style={[styles.headerTitle, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>
-          Resources
-        </Text>
-        <Text style={[styles.headerSubtitle, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>
-          Real success stories from women entrepreneurs
-        </Text>
+        {onBack && (
+          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <Ionicons name="arrow-back" size={24} color="#4D0045" />
+          </TouchableOpacity>
+        )}
+        <View style={styles.headerContent}>
+          <Text style={[styles.headerTitle, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>
+            Resources
+          </Text>
+          <Text style={[styles.headerSubtitle, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>
+            Real success stories from women entrepreneurs
+          </Text>
+        </View>
       </Animated.View>
 
       {/* Search Bar */}
@@ -376,6 +384,21 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
+    marginRight: 15,
+    marginTop: 5,
+  },
+  headerContent: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 32,

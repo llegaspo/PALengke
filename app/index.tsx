@@ -13,8 +13,11 @@ import Resources from "./resources";
 import SideMenu from "../components/SideMenu"; // Added import for SideMenu
 LogBox.ignoreAllLogs(false);
 
-// Suppress the Expo Router Fragment warning
-LogBox.ignoreLogs(['Warning: Invalid prop `style` supplied to `React.Fragment`']);
+// Suppress warnings
+LogBox.ignoreLogs([
+  'Warning: Invalid prop `style` supplied to `React.Fragment`',
+  'Warning: useInsertionEffect must not schedule updates'
+]);
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('home');
@@ -23,6 +26,16 @@ const App = () => {
   const [fontLoadingComplete, setFontLoadingComplete] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // Sample products data to check for out-of-stock items
+  const [products] = useState([
+    { id: '1', name: 'tempura', price: 10.0, stock: 0, hasImage: true },
+    { id: '2', name: 'fishballs', price: 10.0, stock: 0, hasImage: true },
+    { id: '3', name: 'kwek-kwek', price: 10.0, stock: 100, hasImage: true },
+    { id: '4', name: 'tempura', price: 0.0, stock: 100, hasImage: true },
+    { id: '5', name: 'fishballs', price: 30.0, stock: 100, hasImage: true },
+    { id: '6', name: 'kwek-kwek', price: 100.0, stock: 100, hasImage: true },
+  ]);
 
   useEffect(() => {
     const loadAppFonts = async () => {
@@ -72,7 +85,7 @@ const App = () => {
     }
 
     if (currentScreen === 'resources') {
-      return <Resources fontsLoaded={fontsLoaded} />;
+      return <Resources fontsLoaded={fontsLoaded} onBack={navigateBack} />;
     }
 
     if (currentScreen === 'language') {
@@ -116,7 +129,7 @@ const App = () => {
       <View style={styles.screen}>
         {renderContent()}
         {currentScreen === 'main' && (
-          <BottomNavbar activeTab={activeTab} onTabPress={handleTabPress} fontsLoaded={fontsLoaded} />
+          <BottomNavbar activeTab={activeTab} onTabPress={handleTabPress} fontsLoaded={fontsLoaded} products={products} />
         )}
       </View>
       <SideMenu

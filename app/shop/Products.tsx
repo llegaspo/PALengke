@@ -1,6 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { getFontFamily } from '../../components/FontConfig';
+
+const { width } = Dimensions.get('window');
 
 interface Product {
   id: string;
@@ -13,10 +15,12 @@ interface Product {
 interface ProductsProps {
   products: Product[];
   fontsLoaded?: boolean;
-  onProductSale?: (product: Product, quantity: number, type?: 'sale' | 'undo' | 'outOfStock') => void;
+  onProductSale?: (product: Product, quantity: number, type?: 'sale' | 'undo' | 'outOfStock', position?: { x: number; y: number }) => void;
 }
 
 const Products: React.FC<ProductsProps> = ({ products, fontsLoaded = true, onProductSale }) => {
+  const productRefs = useRef<{ [key: string]: TouchableOpacity | null }>({});
+
   // Arrange products in rows of 3
   const rows = [];
   for (let i = 0; i < products.length; i += 3) {
@@ -30,10 +34,27 @@ const Products: React.FC<ProductsProps> = ({ products, fontsLoaded = true, onPro
       }
       return;
     }
-    if (onProductSale) {
+
+    // Get the position of the tapped product
+    const productRef = productRefs.current[product.id];
+    if (productRef && onProductSale) {
+      productRef.measure((x, y, width, height, pageX, pageY) => {
+        const position = {
+          x: pageX + width / 2, // Center horizontally
+          y: pageY + height / 2  // Center vertically
+        };
+        onProductSale(product, 1, 'sale', position);
+      });
+    } else if (onProductSale) {
+      // Fallback if measurement fails
       onProductSale(product, 1, 'sale');
     }
   };
+
+  // Calculate responsive dimensions
+  const cardWidth = Math.max(100, (width - 112) / 3); // Better spacing calculation
+  const imageSize = Math.max(48, cardWidth * 0.55);
+  const cardHeight = Math.max(140, cardWidth * 1.45);
 
   return (
     <View style={styles.grid}>
@@ -42,25 +63,44 @@ const Products: React.FC<ProductsProps> = ({ products, fontsLoaded = true, onPro
           {row.map((product) => (
             <TouchableOpacity
               key={product.id}
-              style={styles.card}
+              ref={(ref) => {
+                productRefs.current[product.id] = ref;
+              }}
+              style={[
+                styles.card, 
+                { width: cardWidth, height: cardHeight },
+                product.stock <= 0 && styles.outOfStockCard
+              ]}
               onPress={() => handleProductPress(product)}
-              activeOpacity={0.85}
+              activeOpacity={0.75}
             >
               <View style={styles.cardContent}>
-                <Text style={[styles.price, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>{`₱${product.price.toFixed(2)}`}</Text>
+                <Text style={[styles.price, { fontFamily: getFontFamily('bold', fontsLoaded), fontSize: Math.min(18, cardWidth * 0.15) }]}>
+                  {`₱${product.price.toFixed(2)}`}
+                </Text>
                 {product.hasImage ? (
-                  <View style={styles.imagePlaceholder} />
+                  <View style={[styles.imagePlaceholder, { width: imageSize, height: imageSize, borderRadius: imageSize / 2 }]} />
                 ) : (
-                  <View style={styles.imagePlaceholderEmpty} />
+                  <View style={[styles.imagePlaceholderEmpty, { width: imageSize * 0.6, height: imageSize * 0.6, borderRadius: imageSize * 0.3 }]} />
                 )}
-                <Text style={[styles.name, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>{product.name.toLowerCase()}</Text>
-                <Text style={[styles.stock, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>stock: {product.stock}</Text>
+                <Text style={[styles.name, { fontFamily: getFontFamily('medium', fontsLoaded), fontSize: Math.min(14, cardWidth * 0.12) }]}>
+                  {product.name.toLowerCase()}
+                </Text>
+                <View style={[styles.stockContainer, { backgroundColor: product.stock > 0 ? '#E8F5E8' : '#FFE8E8' }]}>
+                  <Text style={[styles.stock, { 
+                    fontFamily: getFontFamily('medium', fontsLoaded), 
+                    fontSize: Math.min(11, cardWidth * 0.09),
+                    color: product.stock > 0 ? '#2E7D32' : '#C62828'
+                  }]}>
+                    {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                  </Text>
+                </View>
               </View>
             </TouchableOpacity>
           ))}
           {/* Fill empty spots for last row if needed */}
           {row.length < 3 && Array.from({ length: 3 - row.length }).map((_, i) => (
-            <View key={`empty-${i}`} style={[styles.card, { backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0 }]} />
+            <View key={`empty-${i}`} style={[styles.card, { backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0, width: cardWidth, height: cardHeight }]} />
           ))}
         </View>
       ))}
@@ -68,37 +108,39 @@ const Products: React.FC<ProductsProps> = ({ products, fontsLoaded = true, onPro
   );
 };
 
-const CARD_RADIUS = 18;
-
 const styles = StyleSheet.create({
   grid: {
     width: '100%',
-    paddingHorizontal: 0,
-    marginBottom: 8,
+    paddingHorizontal: 4,
+    paddingBottom: 20, // Add more bottom padding
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 18,
+    marginBottom: 16, // Reduced from 20 for tighter spacing
     paddingHorizontal: 0,
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 18,
-    flex: 1,
-    marginHorizontal: 5,
-    minWidth: 120,
-    maxWidth: 120,
-    minHeight: 170,
-    paddingVertical: 18,
-    paddingHorizontal: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: 20,
+    marginHorizontal: 6,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    shadowColor: '#4A154B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
     alignItems: 'center',
     justifyContent: 'flex-start',
+    borderWidth: 1,
+    borderColor: 'rgba(74, 21, 75, 0.05)',
+  },
+  outOfStockCard: {
+    borderWidth: 2,
+    borderColor: '#FF3B30',
+    shadowColor: '#FF3B30',
+    shadowOpacity: 0.15,
   },
   cardContent: {
     width: '100%',
@@ -106,39 +148,39 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   price: {
-    fontSize: 20,
-    color: '#000',
-    fontWeight: 'bold',
+    color: '#4A154B',
+    fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
   },
   imagePlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 100,
-    backgroundColor: '#D1C4E9',
-    marginBottom: 14,
+    backgroundColor: '#E3F2FD',
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#BBDEFB',
   },
   imagePlaceholderEmpty: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
     backgroundColor: 'transparent',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   name: {
-    fontSize: 16,
-    color: '#000',
-    fontWeight: 'bold',
-    marginBottom: 2,
-    textTransform: 'lowercase',
+    color: '#2C2C2C',
+    fontWeight: '500',
+    marginBottom: 8,
+    textTransform: 'capitalize',
     textAlign: 'center',
+    lineHeight: 18,
+  },
+  stockContainer: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    minWidth: 60,
   },
   stock: {
-    fontSize: 12,
-    color: '#444',
-    marginTop: 0,
+    fontWeight: '500',
     textAlign: 'center',
+    fontSize: 10,
   },
 });
 

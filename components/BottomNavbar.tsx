@@ -3,16 +3,28 @@ import { View, TouchableOpacity, StyleSheet, Text, Animated } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { getFontFamily } from './FontConfig';
 
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+  hasImage?: boolean;
+}
+
 interface BottomNavbarProps {
   activeTab: string;
   onTabPress: (tab: string) => void;
   fontsLoaded?: boolean;
+  products?: Product[];
 }
 
-const BottomNavbar: React.FC<BottomNavbarProps> = ({ activeTab, onTabPress, fontsLoaded = true }) => {
+const BottomNavbar: React.FC<BottomNavbarProps> = ({ activeTab, onTabPress, fontsLoaded = true, products = [] }) => {
+  // Check if there are any out-of-stock items
+  const hasOutOfStockItems = products.some(product => product.stock <= 0);
+
   const tabs = [
     { name: 'home', icon: 'home-outline' as const, activeIcon: 'home' as const, label: 'Home' },
-    { name: 'shop', icon: 'storefront-outline' as const, activeIcon: 'storefront' as const, label: 'Shop' },
+    { name: 'shop', icon: 'storefront-outline' as const, activeIcon: 'storefront' as const, label: 'Sales' },
     { name: 'chat', icon: 'chatbubbles-outline' as const, activeIcon: 'chatbubbles' as const, label: 'Chat' },
     { name: 'wallet', icon: 'wallet-outline' as const, activeIcon: 'wallet' as const, label: 'Wallet' },
   ];
@@ -86,6 +98,7 @@ const BottomNavbar: React.FC<BottomNavbarProps> = ({ activeTab, onTabPress, font
       {tabs.map((tab) => {
         const isActive = activeTab === tab.name;
         const animations = animatedValues[tab.name];
+        const showAlert = tab.name === 'shop' && hasOutOfStockItems;
 
         return (
           <TouchableOpacity
@@ -111,6 +124,11 @@ const BottomNavbar: React.FC<BottomNavbarProps> = ({ activeTab, onTabPress, font
                   size={isActive ? 28 : 24}
                   color={isActive ? '#4D0045' : '#8E8E93'}
                 />
+                {showAlert && (
+                  <View style={styles.alertBadge}>
+                    <View style={styles.alertDot} />
+                  </View>
+                )}
               </Animated.View>
               
               <Animated.View
@@ -172,6 +190,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 2,
+    position: 'relative',
   },
   labelContainer: {
     position: 'absolute',
@@ -183,6 +202,25 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  alertBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -6,
+    backgroundColor: '#FF3B30',
+    borderRadius: 8,
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  alertDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FFFFFF',
   },
 });
 

@@ -1,17 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Dimensions, FlatList, KeyboardAvoidingView, Platform, Animated, Easing, LayoutAnimation, UIManager } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Dimensions, FlatList, KeyboardAvoidingView, Platform, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
-import MaskedView from '@react-native-masked-view/masked-view';
-import { LinearGradient } from 'expo-linear-gradient';
-import { loadFonts, getFontFamily } from '../../components/FontConfig';
+import { getFontFamily } from '../../components/FontConfig';
 
-if (Platform.OS === 'android') {
-  if (UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
-}
-
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const storeOptions = [
   { name: 'sari-sari', image: require('../../assets/png/sari.png') },
@@ -21,110 +13,84 @@ const storeOptions = [
   { name: 'butcher', image: require('../../assets/png/butchery.png') },
 ];
 
-function GradientText({ text, style }: { text: string, style?: any }) {
-  return (
-    <MaskedView maskElement={<Text style={[style, { backgroundColor: 'transparent' }]}>{text}</Text>}>
-      <LinearGradient
-        colors={["#69006C", "#F396FF"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-      >
-        <Text style={[style, { opacity: 0 }]}>{text}</Text>
-      </LinearGradient>
-    </MaskedView>
-  );
+interface ExistingStoreOptionsProps {
+  fontsLoaded?: boolean;
 }
 
-export default function VendorsScreen() {
-  const router = useRouter();
+const ExistingStoreOptions: React.FC<ExistingStoreOptionsProps> = ({ fontsLoaded = true }) => {
   const [storeName, setStoreName] = useState('');
   const [location, setLocation] = useState('');
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [touched, setTouched] = useState<{storeName: boolean, location: boolean, store: boolean}>({storeName: false, location: false, store: false});
+  const router = useRouter();
 
   // Animation refs
   const titleAnimation = useRef(new Animated.Value(0)).current;
   const formAnimation = useRef(new Animated.Value(0)).current;
   const storeOptionsAnimation = useRef(new Animated.Value(0)).current;
-  const confirmAnimation = useRef(new Animated.Value(0)).current;
+  const buttonAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const loadAppFonts = async () => {
-      const success = await loadFonts();
-      setFontsLoaded(success);
-    };
-    loadAppFonts();
+    // Stagger animations for smooth entrance
+    const animations = [
+      { animation: titleAnimation, delay: 0 },
+      { animation: formAnimation, delay: 200 },
+      { animation: storeOptionsAnimation, delay: 400 },
+      { animation: buttonAnimation, delay: 600 },
+    ];
 
-    // Stagger entrance animations
-    Animated.stagger(200, [
-      Animated.timing(titleAnimation, {
+    animations.forEach(({ animation, delay }) => {
+      Animated.timing(animation, {
         toValue: 1,
         duration: 600,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.timing(formAnimation, {
-        toValue: 1,
-        duration: 600,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.timing(storeOptionsAnimation, {
-        toValue: 1,
-        duration: 600,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
-  useEffect(() => {
-    if (selectedStore) {
-      Animated.timing(confirmAnimation, {
-        toValue: 1,
-        duration: 400,
+        delay,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }).start();
-    } else {
-      confirmAnimation.setValue(0);
-    }
-  }, [selectedStore]);
+    });
+  }, []);
+
+  const isStoreNameValid = storeName.trim().length > 0;
+  const isLocationValid = location.trim().length > 0;
+  const isStoreValid = !!selectedStore;
+  const isFormValid = isStoreNameValid && isLocationValid && isStoreValid;
 
   const handleStoreSelect = (storeName: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
     setSelectedStore(storeName);
   };
 
   const handleConfirm = () => {
-    // You can add validation or save logic here
+    setTouched({storeName: true, location: true, store: true});
+    if (!isFormValid) return;
     router.push('/existing-inventory');
   };
 
   const renderStore = ({ item, index }: { item: typeof storeOptions[0], index: number }) => {
     const isSelected = selectedStore === item.name;
-    
+    // For 3 columns: remove marginRight for last item in each row
+    const isLastInRow = (index + 1) % 3 === 0;
     return (
       <TouchableOpacity
         style={[
           styles.square,
           isSelected && styles.selectedSquare,
+          isLastInRow && { marginRight: 0 },
         ]}
         onPress={() => handleStoreSelect(item.name)}
         activeOpacity={0.7}
       >
-        <Image 
-          source={item.image} 
+        <Image
+          source={item.image}
           style={[
             styles.storeImage,
             isSelected && styles.selectedStoreImage
-          ]} 
-          resizeMode="contain" 
+          ]}
+          resizeMode="contain"
         />
         <Text
           style={[
             styles.storeText,
-            { fontFamily: getFontFamily(isSelected ? 'bold' : 'regular', fontsLoaded) },
+            { fontFamily: getFontFamily(isSelected ? 'bold' : 'medium', fontsLoaded) },
             isSelected && styles.selectedText,
           ]}
         >
@@ -136,7 +102,7 @@ export default function VendorsScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, overflow: 'visible' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.container}>
@@ -144,7 +110,9 @@ export default function VendorsScreen() {
           opacity: titleAnimation, 
           transform: [{ translateY: titleAnimation.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }] 
         }}>
-          <GradientText text="Let's get to know each other, Ate!" style={styles.title} />
+          <Text style={[styles.title, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>
+            Let's get to know <Text style={[styles.titleAccent, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>your</Text> business!
+          </Text>
         </Animated.View>
 
         <Animated.View style={{ 
@@ -153,112 +121,142 @@ export default function VendorsScreen() {
         }}>
           <Text style={[styles.label, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>Store Name</Text>
           <TextInput
-            style={[styles.input, { fontFamily: getFontFamily('regular', fontsLoaded) }]}
+            style={[styles.input, { fontFamily: getFontFamily('regular', fontsLoaded) }, !isStoreNameValid && touched.storeName && styles.inputError]}
             value={storeName}
-            onChangeText={setStoreName}
+            onChangeText={text => { setStoreName(text); if (!touched.storeName) setTouched(t => ({...t, storeName: true})); }}
             placeholder="Enter store name"
             placeholderTextColor="#666"
           />
-          <Text style={[styles.text, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>What is your existing store?</Text>
         </Animated.View>
 
         <Animated.View style={{ 
           opacity: storeOptionsAnimation, 
           transform: [{ translateY: storeOptionsAnimation.interpolate({ inputRange: [0, 1], outputRange: [30, 0] }) }] 
         }}>
-          <FlatList
-            data={storeOptions}
-            renderItem={renderStore}
-            keyExtractor={item => item.name}
-            numColumns={3}
-            contentContainerStyle={styles.storeOptions}
-            columnWrapperStyle={{ justifyContent: 'flex-start' }}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
+          <Text style={[styles.label, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>What is your existing store?</Text>
+          <View style={styles.optionsWrapper}>
+            <FlatList
+              key={'store-options-3'}
+              data={storeOptions}
+              renderItem={renderStore}
+              keyExtractor={item => item.name}
+              numColumns={3}
+              contentContainerStyle={styles.storeOptions}
+              columnWrapperStyle={{ justifyContent: 'flex-start' }}
+              scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
+              style={{ overflow: 'visible' }}
+            />
+            {!isStoreValid && touched.store && (
+              <Text style={[styles.errorText, { fontFamily: getFontFamily('regular', fontsLoaded) }]}>Please select a store type.</Text>
+            )}
+          </View>
+        </Animated.View>
+
+        <Animated.View style={{ 
+          opacity: formAnimation, 
+          transform: [{ translateY: formAnimation.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] 
+        }}>
+          <Text style={[styles.label, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>Location</Text>
+          <TextInput
+            style={[styles.input, { fontFamily: getFontFamily('regular', fontsLoaded) }, !isLocationValid && touched.location && styles.inputError]}
+            value={location}
+            onChangeText={text => { setLocation(text); if (!touched.location) setTouched(t => ({...t, location: true})); }}
+            placeholder="Enter location"
+            placeholderTextColor="#666"
           />
         </Animated.View>
-        {/* Location input below store options, above confirm button */}
-        <Text style={[styles.label, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>Location</Text>
-        <TextInput
-          style={[styles.input, { fontFamily: getFontFamily('regular', fontsLoaded) }]}
-          value={location}
-          onChangeText={setLocation}
-          placeholder="Enter location"
-          placeholderTextColor="#666"
-        />
-        <View style={{ flex: 1 }} />
-        {selectedStore && (
-          <View style={{ marginBottom: 24 }}>
-            <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm} activeOpacity={0.7}>
-              <Text style={[styles.confirmButtonText, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>Confirm</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+
+        <Animated.View style={{ 
+          opacity: buttonAnimation, 
+          transform: [{ translateY: buttonAnimation.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] 
+        }}>
+          <TouchableOpacity
+            style={[styles.confirmButton, !isFormValid && styles.confirmButtonDisabled, { marginTop: 24 }]}
+            onPress={handleConfirm}
+            activeOpacity={isFormValid ? 0.7 : 1}
+            disabled={!isFormValid}
+          >
+            <Text style={[styles.confirmButtonText, { fontFamily: getFontFamily('bold', fontsLoaded) }]}>Confirm</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
+export default ExistingStoreOptions;
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F8F9FA',
     flex: 1,
-    padding: 24,
-    paddingTop: 40,
+    paddingTop: 60,
+    paddingBottom: 100,
+    paddingHorizontal: 20,
+    overflow: 'visible',
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: '800',
     backgroundColor: 'transparent',
     color: '#69006c',
-    marginBottom: 32,
+    marginBottom: 18,
     letterSpacing: -1,
     textAlign: 'center',
+  },
+  titleAccent: {
+    color: '#A259C6',
+    fontWeight: '800',
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
     color: '#2D3748',
-    marginBottom: 8,
-    marginLeft: 4,
+    marginBottom: 4,
+    marginLeft: 2,
   },
   input: {
     width: '100%',
-    padding: 16,
+    padding: 12,
     fontSize: 16,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     color: '#2D3748',
     backgroundColor: '#FFFFFF',
-    marginBottom: 32,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
   },
-  text: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2D3748',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
   storeOptions: {
-    marginBottom: 32,
-    paddingHorizontal: 12,
+    marginBottom: 16,
+    paddingHorizontal: 0,
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    overflow: 'visible',
+  },
+  optionsWrapper: {
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    marginBottom: 0,
+    marginTop: 12,
+    overflow: 'visible',
   },
   square: {
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 12,
-    marginBottom: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    marginBottom: 20,
     marginRight: 12,
-    width: (width - 96) / 3,
+    width: (width - 2 * 20 - 2 * 12) / 3,
+    height: Math.min(120, height * 0.16),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -267,6 +265,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1 }],
     borderWidth: 2,
     borderColor: 'transparent',
+    overflow: 'visible',
   },
   selectedSquare: {
     borderColor: '#69006c',
@@ -279,13 +278,14 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   storeImage: {
-    width: 72,
-    height: 52,
-    marginBottom: 12,
+    width: '70%',
+    height: '55%',
+    marginBottom: 8,
+    resizeMode: 'contain',
   },
   selectedStoreImage: {
-    width: 84,
-    height: 60,
+    width: '82%',
+    height: '65%',
   },
   storeText: {
     fontSize: 13,
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   confirmButton: {
-    marginBottom: 24,
+    marginBottom: 12,
     alignSelf: 'center',
     paddingVertical: 16,
     paddingHorizontal: 48,
@@ -319,5 +319,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     letterSpacing: 0.5,
+  },
+  inputError: {
+    borderColor: 'red',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 13,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  confirmButtonDisabled: {
+    backgroundColor: '#d1a6e6',
   },
 });
