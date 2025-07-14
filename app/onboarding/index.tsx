@@ -111,7 +111,7 @@ export default function OnboardingScreen() {
     if (selected === 'option1') {
       router.push('/existing-storeoptions');
     } else if (selected === 'option2') {
-      router.push('/existing-inventory');
+      router.push('/new-storeoptions');
     }
   };
 

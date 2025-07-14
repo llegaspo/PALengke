@@ -38,6 +38,7 @@ function GradientText({ text, style }: { text: string, style?: any }) {
 export default function VendorsScreen() {
   const router = useRouter();
   const [storeName, setStoreName] = useState('');
+  const [location, setLocation] = useState('');
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
@@ -158,7 +159,6 @@ export default function VendorsScreen() {
             placeholder="Enter store name"
             placeholderTextColor="#666"
           />
-
           <Text style={[styles.text, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>What is your existing store?</Text>
         </Animated.View>
 
@@ -177,9 +177,16 @@ export default function VendorsScreen() {
             showsVerticalScrollIndicator={false}
           />
         </Animated.View>
-
+        {/* Location input below store options, above confirm button */}
+        <Text style={[styles.label, { fontFamily: getFontFamily('medium', fontsLoaded) }]}>Location</Text>
+        <TextInput
+          style={[styles.input, { fontFamily: getFontFamily('regular', fontsLoaded) }]}
+          value={location}
+          onChangeText={setLocation}
+          placeholder="Enter location"
+          placeholderTextColor="#666"
+        />
         <View style={{ flex: 1 }} />
-        
         {selectedStore && (
           <View style={{ marginBottom: 24 }}>
             <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm} activeOpacity={0.7}>

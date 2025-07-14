@@ -192,8 +192,8 @@ export default function ExistingInventoryScreen() {
         transform: [{ translateY: headerAnimation.interpolate({ inputRange: [0, 1], outputRange: [-20, 0] }) }] 
       }}>
         {/* Removed back button */}
-        <GradientText text="Let's set you up!" style={[styles.title, { paddingHorizontal: 20 }]} />
-        <Text style={[styles.subheading, { fontFamily: getFontFamily('regular', fontsLoaded), paddingHorizontal: 20 }]}>Start by listing your existing products.</Text>
+        <GradientText text="Edit suggestions!" style={[styles.title, { paddingHorizontal: 20 }]} />
+        <Text style={[styles.subheading, { fontFamily: getFontFamily('regular', fontsLoaded), paddingHorizontal: 20 }]}>Let's perfect your business ideas:.</Text>
       </Animated.View>
 
       {/* Content */}
@@ -400,10 +400,10 @@ export default function ExistingInventoryScreen() {
           </View>
         </View>
         <TouchableOpacity 
-          style={[styles.confirmBtn, { marginHorizontal: 20 }]}
+          style={styles.confirmButton}
           onPress={() => router.push('/main')}
         >
-          <Text style={styles.confirmBtnText}>Confirm</Text>
+          <Text style={styles.confirmButtonText}>Confirm</Text>
         </TouchableOpacity>
       </Animated.View>
       {showDeleteModal && (
@@ -759,6 +759,29 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
   },
+  confirmButton: {
+    marginTop: 24,
+    marginBottom: 24,
+    alignSelf: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 48,
+    backgroundColor: '#69006c',
+    borderRadius: 28,
+    width: '80%',
+    maxWidth: 280,
+    shadowColor: '#69006c',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
@@ -791,7 +814,7 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: 16,
     color: '#222',
-    marginBottom: 8,
+    marginBottom: 24,
     textAlign: 'center',
   },
   modalNote: {
