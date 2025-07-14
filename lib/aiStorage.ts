@@ -6,7 +6,7 @@ export type ChatMessage = {
 }
 
 
-export const getMessages = async (storageKey: string) => {
+export const getMessages = async (storageKey: string): Promise<ChatMessage[]> => {
   try{
     const stored = await AsyncStorage.getItem(storageKey);
 

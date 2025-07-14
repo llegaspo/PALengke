@@ -8,6 +8,11 @@ import { getFontFamily } from '../../components/FontConfig';
 import AteAiIcon from '../../assets/icons/ate-ai.svg';
 import AteAiProfileIcon from '../../assets/icons/ate-ai-icon.svg';
 import { AIAssistant } from '../../lib/AI/aiAssistant';
+import { getMessages, ChatMessage } from '../../lib/aiStorage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
+const STORAGE_KEY = 'assistant_Message_History';
 
 interface Message {
   id: number;
@@ -20,11 +25,13 @@ interface ChatProps {
   fontsLoaded?: boolean;
   onNavigateToShare?: () => void;
 }
-
+;
 const Chat: React.FC<ChatProps> = ({ fontsLoaded = true, onNavigateToShare }) => {
   const [message, setMessage] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Animation values
   const headerAnimation = useRef(new Animated.Value(0)).current;
@@ -43,6 +50,7 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true, onNavigateToShare }) =>
   ];
 
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+
 
   // Initialize animations for existing messages
   useEffect(() => {
@@ -87,6 +95,7 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true, onNavigateToShare }) =>
     }).start();
   }, []);
 
+
   // Typing indicator animation
   useEffect(() => {
     if (isTyping) {
@@ -109,6 +118,36 @@ const Chat: React.FC<ChatProps> = ({ fontsLoaded = true, onNavigateToShare }) =>
       animate();
     }
   }, [isTyping]);
+
+  useEffect(() => {
+    const loadStoredMessages = async () => {
+      const stored: ChatMessage[] = await getMessages(STORAGE_KEY);
+
+
+      const filtered = stored.filter((msg) => msg.role !== 'system');
+
+      const formatted: Message[] = filtered.map((msg, index) => ({
+        id: index + 2, // +2 because id:1 is reserved for initialMessage
+        text: msg.content,
+        isBot: msg.role === 'assistant',
+        timestamp: new Date(),
+      }));
+
+      setMessages([initialMessages[0], ...formatted]);
+      formatted.forEach((msg) => {
+      if (!messageAnimations[msg.id]) {
+        messageAnimations[msg.id] = new Animated.Value(0);
+        Animated.timing(messageAnimations[msg.id], {
+          toValue: 1,
+          duration: 400,
+          delay: 200 + msg.id * 100,
+          useNativeDriver: true,
+        }).start();
+      }
+    });
+  };
+    loadStoredMessages();
+}, []);
 
   const sendMessage = async () => {
     if (message.trim()) {
@@ -388,7 +427,12 @@ const TypingIndicator = () => (
         keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 90} // Adjusted for header height
       >
         {/* Chat Messages */}
-        <ScrollView style={styles.messagesContainer} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+        >
           {messages.map((msg) => (
             <AnimatedMessage key={msg.id} msg={msg} />
           ))}
@@ -507,7 +551,7 @@ const styles = StyleSheet.create({
   },
   profileIcon: {
     marginRight: 10,
-    marginTop: 5,
+    alignSelf: 'flex-end'
   },
   messageBubble: {
     maxWidth: '80%',
