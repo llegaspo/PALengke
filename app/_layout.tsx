@@ -16,77 +16,77 @@ export default function RootLayout(){
         name='index' 
         options={{
           title: 'palengke',
-          headerShown: false
+          headerShown: true
         }}
       />
       <Stack.Screen 
         name='main/index' 
         options={{
           title: 'palengke',
-          headerShown: false
+          headerShown: true
         }}
       />
       <Stack.Screen 
         name='language/index' 
         options={{
           title: 'palengke',
-          headerShown: false
+          headerShown: true
         }}
       />
       <Stack.Screen 
         name='onboarding/index' 
         options={{
           title: 'palengke',
-          headerShown: false
+          headerShown: true
         }}
       />
       <Stack.Screen 
         name='existing-storeoptions/index' 
         options={{
           title: 'palengke',
-          headerShown: false
+          headerShown: true
         }}
       />
       <Stack.Screen 
         name='existing-inventory/index' 
         options={{
           title: 'palengke',
-          headerShown: false
+          headerShown: true
         }}
       />
       <Stack.Screen 
         name='home/index' 
         options={{
           title: 'palengke',
-          headerShown: false
+          headerShown: true
         }}
       />
       <Stack.Screen 
         name='shop/index' 
         options={{
           title: 'palengke',
-          headerShown: false
+          headerShown: true
         }}
       />
       <Stack.Screen 
         name='chat/index' 
         options={{
           title: 'palengke',
-          headerShown: false
+          headerShown: true
         }}
       />
       <Stack.Screen 
         name='wallet/index' 
         options={{
           title: 'palengke',
-          headerShown: false
+          headerShown: true
         }}
       />
       <Stack.Screen 
         name='share/index' 
         options={{
           title: 'palengke',
-          headerShown: false
+          headerShown: true
         }}
       />
     </Stack>
