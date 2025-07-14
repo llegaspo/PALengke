@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, Dimensions, TextInput, Platform, Animated, Easing, LayoutAnimation, UIManager } from 'react-native';
 import { useRouter } from 'expo-router';
-import MaskedView from '@react-native-masked-view/masked-view';
-import { LinearGradient } from 'expo-linear-gradient';
 import { loadFonts, getFontFamily } from '../../components/FontConfig';
 
 if (Platform.OS === 'android') {
@@ -15,15 +13,7 @@ const { width, height } = Dimensions.get('window');
 
 function GradientText({ text, style }: { text: string, style?: any }) {
   return (
-    <MaskedView maskElement={<Text style={[style, { backgroundColor: 'transparent' }]}>{text}</Text>}>
-      <LinearGradient
-        colors={["#69006C", "#F396FF"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-      >
-        <Text style={[style, { opacity: 0 }]}>{text}</Text>
-      </LinearGradient>
-    </MaskedView>
+    <Text style={[style, { color: '#69006C' }]}>{text}</Text>
   );
 }
 
@@ -402,7 +392,10 @@ export default function ExistingInventoryScreen() {
             </TouchableOpacity>
           </View>
         </View>
-        <TouchableOpacity style={[styles.confirmBtn, { marginHorizontal: 20 }]}>
+        <TouchableOpacity 
+          style={[styles.confirmBtn, { marginHorizontal: 20 }]}
+          onPress={() => router.push('/main')}
+        >
           <Text style={styles.confirmBtnText}>Confirm</Text>
         </TouchableOpacity>
       </Animated.View>
@@ -721,5 +714,9 @@ const styles = StyleSheet.create({
     width: 20,
     resizeMode: 'stretch',
     zIndex: 10,
+  },
+  deleteIcon: {
+    padding: 8,
+    borderRadius: 8,
   },
 });
