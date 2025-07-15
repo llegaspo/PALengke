@@ -7,6 +7,7 @@ import StatCardsRow from './StatCardsRow';
 import TotalProfitCard from './TotalProfitCard';
 import { useRouter } from 'expo-router';
 import { getFontFamily } from '../../../components/FontConfig';
+import { businessReportPDF } from '../../../lib/pdfConvert';
 
 const { width, height } = Dimensions.get('window');
 
@@ -42,7 +43,10 @@ const Analytics: React.FC<AnalyticsProps> = ({ onBack }) => {
   const statsAnimation = useRef(new Animated.Value(0)).current;
   const profitAnimation = useRef(new Animated.Value(0)).current;
   const downloadAnimation = useRef(new Animated.Value(0)).current;
-
+  const handleDownload = async () => {
+    await businessReportPDF();
+  }
+  
   useEffect(() => {
     // Staggered entrance animations
     const animations = [
@@ -200,7 +204,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ onBack }) => {
         >
           <TouchableOpacity 
             style={styles.downloadButton} 
-            onPress={() => {/* TODO: implement download/report */}}
+            onPress={handleDownload}
             activeOpacity={0.8}
           >
             <LinearGradient

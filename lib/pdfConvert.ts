@@ -12,14 +12,14 @@ export interface BusinessReport{
   netMargin: number,
 }
 
-export const businessReportPDF = async (prop: BusinessReport) => {
+export const businessReportPDF = async () => {
 
  const htmlContent = `
-    <html>
+<html>
       <head>
         <style>
           body { font-family: Arial; padding: 20px; }
-          h1 { color: #333; }
+          h1 { color: #333; padding: 0px; line-height: 1px }
           table {
             width: 100%;
             border-collapse: collapse;
@@ -28,21 +28,27 @@ export const businessReportPDF = async (prop: BusinessReport) => {
             border: 1px solid #ddd;
             padding: 8px;
           }
+          th{
+            background-color: red;
+          }
         </style>
       </head>
       <body>
-        <h1>Business Report</h1>
+        <h1>Weekly Financial Report</h1>
+        <span><b>Date Covered:</b> April - June 2025</span>
+        <br>
+        <h2>Key Metrics Summary</h2>
         <table>
-          <tr><th>Description</th><th>Amount (₱)</th></tr>
-          <tr><td>Total Sales</td><td>${prop.totalSales}</td></tr>
-          <tr><td>COGS</td><td>${prop.COGS}</td></tr>
-          <tr><td>Platform Fee</td><td>${prop.platformFee}</td></tr>
-          <tr><td>Ads & Promotion</td><td>${prop.adsNPromotion}</td></tr>
-          <tr><td><strong>Net Profit</strong></td><td><strong>${prop.netProfit}</strong></td></tr>
+          <tr><th>Description</th><th>This Week</th><th>Last Week</th><th>%change</th></tr>
+          <tr><td>Cost of Goods Sold(COGS)</td><td>₱ 5000</td><td>₱ 4300</td><td>+16.2%</td></tr>
+          <tr><td>Gross Profit</td><td>₱ 5000</td><td>₱ 4300</td><td>+16.2%</td></tr>
+          <tr><td>Operating Expenses</td><td>₱ 5000</td><td>₱ 4300</td><td>+16.2%</td></tr>
+          <tr><td>Net Profit</td><td>₱ 5000</td><td>₱ 4300</td><td>+16.2%</td></tr>
+          <tr><td>Cash on Hand</td><td>₱ 5000</td><td>₱ 4300</td><td>+16.2%</td></tr>
         </table>
       </body>
-    </html>
-  `;
+    </html>`;
+
   const { uri } = await Print.printToFileAsync({ html: htmlContent });
 
   const fileName = `Business_Report_${Date.now()}.pdf`;
